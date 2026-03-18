@@ -10,13 +10,18 @@ import type { SemesterData } from "@/types";
 function normalizePdfId(raw: string): string {
   let id = raw.trim();
 
-  // "Alternance S3" / "Portfolio S3" / "Stage S3" → juste le mot
-  if (/^(Alternance|Portfolio|Stage)\s+S\d/i.test(id)) {
+  // "Alternance S3" / "Stage S3" → juste le mot
+  if (/^(Alternance|Stage)\s+S\d/i.test(id)) {
     return id.split(/\s+/)[0];
   }
 
-  // "S3.B.1" → "S3.B.01" (dernier segment numerique: ajouter un zero si 1 chiffre)
-  id = id.replace(/\.(\d)$/, ".0$1");
+  // "P-Portfolio" → "Portfolio"
+  if (id === "P-Portfolio") return "Portfolio";
+
+  // SAE uniquement : "S3.B.1" → "S3.B.01" (ajouter un zero si 1 chiffre a la fin)
+  if (/^S\d/.test(id)) {
+    id = id.replace(/\.(\d)$/, ".0$1");
+  }
 
   return id;
 }
@@ -54,21 +59,36 @@ function extractNotesFromText(text: string): Map<string, string> {
     // "Alternance S3 Alternance" → "Alternance S3"
     let resourceId = "";
 
-    const rMatch = prefix.match(/^(R\d+\.\d+)/);
+    // R3.01, R2.01, R1.L.1, R3.A.L1, etc.
+    const rMatch = prefix.match(/^(R\d+\.[^\s]+)/);
     if (rMatch) {
       resourceId = rMatch[1];
     }
 
-    const sMatch = prefix.match(/^(S\d+\.[AB]\.?\d+)/);
-    if (!resourceId && sMatch) {
-      resourceId = sMatch[1];
+    // SAE avec parcours : S3.A.01, S3.B.1, etc.
+    if (!resourceId) {
+      const sParcoursMatch = prefix.match(/^(S\d+\.[AB]\.?\d+)/);
+      if (sParcoursMatch) resourceId = sParcoursMatch[1];
     }
 
-    const specialMatch = prefix.match(
-      /^(Alternance|Portfolio|Stage)\s+S\d+/i,
-    );
-    if (!resourceId && specialMatch) {
-      resourceId = specialMatch[0];
+    // SAE sans parcours (BUT 1) : S2.01, S1.06, etc.
+    if (!resourceId) {
+      const sSimpleMatch = prefix.match(/^(S\d+\.\d+)/);
+      if (sSimpleMatch) resourceId = sSimpleMatch[1];
+    }
+
+    // Portfolio : "P2 Portfolio S2" → "Portfolio"
+    if (!resourceId) {
+      const pMatch = prefix.match(/^P\d+\s+Portfolio/i);
+      if (pMatch) resourceId = "P-Portfolio";
+    }
+
+    // Alternance / Stage : "Alternance S3" → "Alternance"
+    if (!resourceId) {
+      const specialMatch = prefix.match(
+        /^(Alternance|Stage)\s+S\d+/i,
+      );
+      if (specialMatch) resourceId = specialMatch[0];
     }
 
     if (!resourceId) continue;
