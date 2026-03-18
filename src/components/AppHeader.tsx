@@ -87,7 +87,7 @@ export function AppHeader({ config, onConfigChange }: AppHeaderProps) {
           </div>
         </div>
         <div className="header-right">
-          <span className="status-dot online" />
+          <span className="status-dot" />
         </div>
       </div>
     </header>

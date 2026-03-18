@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { Config, Year } from "@/types";
+import type { Config } from "@/types";
 import {
   getSemesters, getConfigKey, getCurrentData,
   calculateSemesterStats, determineDecision,
-  calculateCompetences, calculateAnnualAvg, generateMessages,
+  calculateAnnualAvg, generateMessages,
 } from "@/lib/calculations";
 
 const DEFAULT_CONFIG: Config = {
@@ -72,7 +72,7 @@ export function useCalculator() {
   }, []);
 
   const semesterStats = useMemo(() => {
-    return semesters.map((sem, idx) => {
+    return semesters.map((sem) => {
       const semData = currentData?.[sem];
       return calculateSemesterStats(semData, notes[sem] || {}, sem.toUpperCase());
     });
@@ -82,10 +82,6 @@ export function useCalculator() {
     return determineDecision(semesterStats[0], semesterStats[1], config);
   }, [semesterStats, config]);
 
-  const competences = useMemo(() => {
-    return calculateCompetences(semesterStats[0], semesterStats[1]);
-  }, [semesterStats]);
-
   const annualAvg = useMemo(() => {
     return calculateAnnualAvg(semesterStats[0], semesterStats[1]);
   }, [semesterStats]);
@@ -93,12 +89,6 @@ export function useCalculator() {
   const messages = useMemo(() => {
     return generateMessages(semesterStats, decision, config);
   }, [semesterStats, decision, config]);
-
-  const totalNotesCount = useMemo(() => {
-    return Object.values(notes).reduce((acc, sem) => {
-      return acc + Object.values(sem).filter(v => v).length;
-    }, 0);
-  }, [notes]);
 
   return {
     config,
@@ -110,10 +100,8 @@ export function useCalculator() {
     semesters,
     semesterStats,
     decision,
-    competences,
     annualAvg,
     messages,
-    totalNotesCount,
     hydrated,
   };
 }

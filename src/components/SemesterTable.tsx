@@ -1,26 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { memo, useCallback } from "react";
 import type { SemesterData, UEResult } from "@/types";
-import { UE_COLORS } from "@/data/coefficients";
 import { parseNote } from "@/lib/calculations";
-
-function AvgCell({ value, className }: { value: string; className: string }) {
-  const prevRef = useRef(value);
-  const cellRef = useRef<HTMLTableCellElement>(null);
-
-  useEffect(() => {
-    if (prevRef.current !== value && value !== "--" && cellRef.current) {
-      cellRef.current.classList.add("updating");
-      const timer = setTimeout(() => cellRef.current?.classList.remove("updating"), 400);
-      prevRef.current = value;
-      return () => clearTimeout(timer);
-    }
-    prevRef.current = value;
-  }, [value]);
-
-  return <td ref={cellRef} className={className}>{value}</td>;
-}
 
 interface SemesterTableProps {
   semesterKey: string;
@@ -44,7 +26,7 @@ function getAvgClass(moy: number | null | undefined): string {
   return moy >= 10 ? "pass" : "fail";
 }
 
-export function SemesterTable({
+export const SemesterTable = memo(function SemesterTable({
   semesterKey,
   data,
   notes,
@@ -53,9 +35,6 @@ export function SemesterTable({
   ueResults,
   totalAvg,
 }: SemesterTableProps) {
-  const [hoveredCol, setHoveredCol] = useState<number | null>(null);
-  const [activeRow, setActiveRow] = useState<number | null>(null);
-
   const handleReset = useCallback(() => {
     if (confirm(`Confirmer RESET pour ${semesterKey.toUpperCase()} ?`)) {
       onReset(semesterKey);
@@ -99,13 +78,8 @@ export function SemesterTable({
           <thead>
             <tr>
               <th>UE / Competence</th>
-              {data.ressources.map((r, ci) => (
-                <th
-                  key={r.id}
-                  className={`tooltip-container ${hoveredCol === ci + 1 ? "col-hover" : ""}`}
-                  onMouseEnter={() => setHoveredCol(ci + 1)}
-                  onMouseLeave={() => setHoveredCol(null)}
-                >
+              {data.ressources.map(r => (
+                <th key={r.id} className="tooltip-container">
                   {r.id}
                   <div className="custom-tooltip">
                     <div className="tooltip-title">{r.id}</div>
@@ -113,25 +87,18 @@ export function SemesterTable({
                   </div>
                 </th>
               ))}
-              <th className={hoveredCol === data.ressources.length + 1 ? "col-hover" : ""}>Coeff</th>
+              <th>Coeff</th>
               <th>Moy.</th>
             </tr>
-            <tr className={`notes-row ${activeRow === -1 ? "row-active" : ""}`}>
+            <tr className="notes-row">
               <td><div className="notes-label">Notes /20</div></td>
-              {data.ressources.map((r, ci) => (
-                <td
-                  key={r.id}
-                  className={hoveredCol === ci + 1 ? "col-hover" : ""}
-                  onMouseEnter={() => setHoveredCol(ci + 1)}
-                  onMouseLeave={() => setHoveredCol(null)}
-                >
+              {data.ressources.map(r => (
+                <td key={r.id}>
                   <input
                     type="number"
                     className={`note-input ${getInputClass(notes[r.id])}`}
                     value={notes[r.id] || ""}
                     onChange={e => onNoteChange(semesterKey, r.id, e.target.value)}
-                    onFocus={() => { setHoveredCol(ci + 1); setActiveRow(-1); }}
-                    onBlur={() => { setHoveredCol(null); setActiveRow(null); }}
                     min={0}
                     max={20}
                     step={0.01}
@@ -146,34 +113,28 @@ export function SemesterTable({
             {data.ues.map((ue, i) => {
               const result = ueResults.find(r => r.ue === ue.ue);
               return (
-                <tr key={ue.ue} className={activeRow === i ? "row-active" : ""}>
+                <tr key={ue.ue}>
                   <td>
                     <div className="competence-cell">
-                      <div className="competence-indicator" style={{ background: UE_COLORS[i] }} />
+                      <div className="competence-indicator" />
                       <div className="competence-info">
                         <span className="competence-ue">{ue.ue}</span>
                         <span className="competence-name">{ue.nom}</span>
                       </div>
                     </div>
                   </td>
-                  {data.ressources.map((r, ci) => {
+                  {data.ressources.map(r => {
                     const coeff = ue.c[r.id] || 0;
                     return (
-                      <td
-                        key={r.id}
-                        className={`coeff-cell ${coeff ? "active" : ""} ${hoveredCol === ci + 1 ? "col-hover" : ""}`}
-                        onMouseEnter={() => setHoveredCol(ci + 1)}
-                        onMouseLeave={() => setHoveredCol(null)}
-                      >
+                      <td key={r.id} className={`coeff-cell ${coeff ? "active" : ""}`}>
                         {coeff || "--"}
                       </td>
                     );
                   })}
                   <td className="coeff-cell">{ue.coeff}</td>
-                  <AvgCell
-                    className={`avg-cell ${getAvgClass(result?.moy)}`}
-                    value={result?.moy !== null && result?.moy !== undefined ? result.moy.toFixed(2) : "--"}
-                  />
+                  <td className={`avg-cell ${getAvgClass(result?.moy)}`}>
+                    {result?.moy !== null && result?.moy !== undefined ? result.moy.toFixed(2) : "--"}
+                  </td>
                 </tr>
               );
             })}
@@ -181,14 +142,13 @@ export function SemesterTable({
               <td><div className="total-label">Total Semestre</div></td>
               {data.ressources.map(r => <td key={r.id} />)}
               <td className="coeff-cell">{data.totaux.coeff}</td>
-              <AvgCell
-                className={`avg-cell ${getAvgClass(totalAvg)}`}
-                value={totalAvg !== null ? totalAvg.toFixed(2) : "--"}
-              />
+              <td className={`avg-cell ${getAvgClass(totalAvg)}`}>
+                {totalAvg !== null ? totalAvg.toFixed(2) : "--"}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
   );
-}
+});

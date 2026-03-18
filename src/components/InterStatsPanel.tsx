@@ -1,10 +1,11 @@
+import { memo } from "react";
 import type { SemesterResult } from "@/types";
 
 interface InterStatsPanelProps {
   stats: SemesterResult | null;
 }
 
-export function InterStatsPanel({ stats }: InterStatsPanelProps) {
+export const InterStatsPanel = memo(function InterStatsPanel({ stats }: InterStatsPanelProps) {
   if (!stats) return null;
 
   const avgClass = stats.moyGenerale !== null ? (stats.moyGenerale >= 10 ? "pass" : "fail") : "";
@@ -88,4 +89,4 @@ export function InterStatsPanel({ stats }: InterStatsPanelProps) {
       </div>
     </section>
   );
-}
+});

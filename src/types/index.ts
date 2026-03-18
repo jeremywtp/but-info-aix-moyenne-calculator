@@ -2,12 +2,12 @@ export type Year = "1" | "2" | "3";
 export type Formation = "FA" | "FI";
 export type Parcours = "A" | "B";
 
-export interface Ressource {
+interface Ressource {
   id: string;
   nom: string;
 }
 
-export interface UE {
+interface UE {
   ue: string;
   nom: string;
   coeff: number;
@@ -59,8 +59,8 @@ export interface SemesterResult {
   hasData: boolean;
 }
 
-export type DecisionCode = "ADM" | "AJAC" | "AJ" | "--";
-export type DecisionType = "adm" | "ajac" | "aj" | "";
+type DecisionCode = "ADM" | "AJAC" | "AJ" | "--";
+type DecisionType = "adm" | "ajac" | "aj" | "";
 
 export interface DecisionResult {
   code: DecisionCode;

@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Config, SemesterResult, DecisionResult } from "@/types";
+import { useState, useEffect, useRef } from "react";
+import type { SemesterResult, DecisionResult } from "@/types";
 
 interface AppFooterProps {
   semesterStats: (SemesterResult | null)[];
   decision: DecisionResult;
-  config: Config;
   annualAvg: number | null;
   semesters: string[];
 }
@@ -18,23 +17,33 @@ const descMessages: Record<string, string> = {
   "": "en_attente",
 };
 
-export function AppFooter({ semesterStats, decision, config, annualAvg, semesters }: AppFooterProps) {
+export function AppFooter({ semesterStats, decision, annualAvg, semesters }: AppFooterProps) {
   const [time, setTime] = useState("--:--");
   const [sessionTime, setSessionTime] = useState("00:00");
+  const startRef = useRef(Date.now());
 
   useEffect(() => {
-    const start = Date.now();
+    let id: ReturnType<typeof setInterval>;
+
     const update = () => {
       const now = new Date();
       setTime(now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
-      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const elapsed = Math.floor((Date.now() - startRef.current) / 1000);
       const mins = Math.floor(elapsed / 60).toString().padStart(2, "0");
       const secs = (elapsed % 60).toString().padStart(2, "0");
       setSessionTime(`${mins}:${secs}`);
     };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
+
+    const start = () => { update(); id = setInterval(update, 1000); };
+    const stop = () => clearInterval(id);
+
+    const onVisibility = () => {
+      if (document.hidden) stop(); else start();
+    };
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisibility); };
   }, []);
 
   const s1 = semesterStats[0];
@@ -98,7 +107,7 @@ export function AppFooter({ semesterStats, decision, config, annualAvg, semester
             <span className="dapp-label">ECTS</span>
             <span className="dapp-val">{totalECTS}/60</span>
             <span className="dapp-meta">
-              <span className="term-ects-filled">{"█".repeat(filledBlocks)}</span>
+              <span>{"█".repeat(filledBlocks)}</span>
               {"░".repeat(emptyBlocks)}
             </span>
           </div>

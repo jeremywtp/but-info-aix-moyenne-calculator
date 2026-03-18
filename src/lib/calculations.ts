@@ -125,7 +125,7 @@ export function determineDecision(
   return { code: "AJ", desc: "ajourné", type: "aj" };
 }
 
-export function calculateCompetences(
+function calculateCompetences(
   s1: SemesterResult | null,
   s2: SemesterResult | null,
 ): CompetenceResult[] {

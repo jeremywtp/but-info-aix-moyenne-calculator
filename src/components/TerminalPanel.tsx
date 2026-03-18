@@ -38,7 +38,7 @@ export function TerminalPanel({ messages }: TerminalPanelProps) {
           }
           return (
             <div key={i} className={`terminal-line terminal-output ${msg.type}`}>
-              <span className="terminal-text">{content}</span>
+              <span>{content}</span>
             </div>
           );
         })}
