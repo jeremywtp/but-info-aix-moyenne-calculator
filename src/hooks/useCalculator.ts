@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Config } from "@/types";
 import {
-  getSemesters, getConfigKey, getCurrentData,
+  getSemesters, getConfigKey,
   calculateSemesterStats, determineDecision,
   calculateAnnualAvg, generateMessages,
 } from "@/lib/calculations";
+import { useSheetData } from "@/hooks/useSheetData";
 
 const DEFAULT_CONFIG: Config = {
   year: "2",
@@ -34,7 +35,8 @@ export function useCalculator() {
 
   const configKey = getConfigKey(config);
   const semesters = getSemesters(config.year);
-  const currentData = getCurrentData(config);
+  const { sheetData, loading: sheetLoading } = useSheetData(config);
+  const currentData = sheetData?.[semesters[0]] ? sheetData : null;
 
   // Charger les notes quand la config change
   useEffect(() => {
@@ -103,5 +105,6 @@ export function useCalculator() {
     annualAvg,
     messages,
     hydrated,
+    sheetLoading,
   };
 }

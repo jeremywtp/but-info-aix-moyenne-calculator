@@ -23,8 +23,6 @@ export interface SemesterData {
 
 export type YearData = Record<string, SemesterData>;
 
-export type AllData = Record<Year, Record<Formation, Record<Parcours, YearData | null>>>;
-
 export interface Config {
   year: Year;
   formation: Formation;

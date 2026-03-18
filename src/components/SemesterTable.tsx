@@ -51,8 +51,8 @@ export const SemesterTable = memo(function SemesterTable({
           <table>
             <tbody>
               <tr>
-                <td colSpan={20} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
-                  Configuration non disponible pour cette combinaison.
+                <td colSpan={20} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", opacity: 0.6 }}>
+                  Chargement des coefficients...
                 </td>
               </tr>
             </tbody>

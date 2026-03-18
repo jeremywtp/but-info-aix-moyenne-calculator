@@ -2,7 +2,7 @@ import type {
   Config, SemesterData, SemesterResult, UEResult, UEStatus,
   DecisionResult, CompetenceResult, MessageInfo, Year,
 } from "@/types";
-import { ALL_DATA, UE_COLORS } from "@/data/coefficients";
+import { UE_COLORS } from "@/data/coefficients";
 
 export function parseNote(value: string | undefined): number | null {
   if (!value) return null;
@@ -18,10 +18,6 @@ export function getSemesters(year: Year): [string, string] {
 
 export function getConfigKey(config: Config): string {
   return `${config.year}-${config.formation}-${config.parcours}`;
-}
-
-export function getCurrentData(config: Config) {
-  return ALL_DATA[config.year]?.[config.formation]?.[config.parcours] ?? null;
 }
 
 export function calculateSemesterStats(
