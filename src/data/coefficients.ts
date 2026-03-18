@@ -1,9 +1,9 @@
-import type { AllData } from "@/types";
+import type { AllData, YearData } from "@/types";
 
 export const UE_COLORS = ["#a855f7", "#3b82f6", "#00f0ff", "#f472b6", "#10b981", "#f59e0b"];
 
 // BUT 1 — pas de distinction FA/FI ni parcours A/B
-const BUT1_DATA = {
+const BUT1_DATA: YearData = {
   s1: {
     ressources: [
       { id: "S1.01", nom: "SAE 1.01" },
