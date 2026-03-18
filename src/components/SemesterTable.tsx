@@ -1,8 +1,9 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import type { SemesterData, UEResult } from "@/types";
 import { parseNote } from "@/lib/calculations";
+import { parseGradesPdf } from "@/lib/pdfParser";
 
 interface SemesterTableProps {
   semesterKey: string;
@@ -35,11 +36,38 @@ export const SemesterTable = memo(function SemesterTable({
   ueResults,
   totalAvg,
 }: SemesterTableProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+
   const handleReset = useCallback(() => {
     if (confirm(`Confirmer RESET pour ${semesterKey.toUpperCase()} ?`)) {
       onReset(semesterKey);
     }
   }, [semesterKey, onReset]);
+
+  const handlePdfImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !data) return;
+
+    setImporting(true);
+    try {
+      const grades = await parseGradesPdf(file, data);
+      const count = Object.keys(grades).length;
+      if (count === 0) {
+        alert("Aucune note trouvee dans ce PDF pour ce semestre.");
+        return;
+      }
+      for (const [id, note] of Object.entries(grades)) {
+        onNoteChange(semesterKey, id, note);
+      }
+    } catch (err) {
+      console.error("PDF import error:", err);
+      alert("Erreur lors de la lecture du PDF. Voir la console pour plus de details.");
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [data, semesterKey, onNoteChange]);
 
   if (!data) {
     return (
@@ -69,9 +97,25 @@ export const SemesterTable = memo(function SemesterTable({
     <section className={`glass-card ${hasData ? "has-data" : ""}`}>
       <div className="semester-header">
         <div className="semester-title">Semestre {semNum}</div>
-        <button className="btn-reset" onClick={handleReset}>
-          /// RESET :: {semesterKey.toUpperCase()}
-        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf"
+          onChange={handlePdfImport}
+          style={{ display: "none" }}
+        />
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn-reset"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? "Import..." : "/// IMPORT PDF"}
+          </button>
+          <button className="btn-reset" onClick={handleReset}>
+            /// RESET :: {semesterKey.toUpperCase()}
+          </button>
+        </div>
       </div>
       <div className="table-container">
         <table>
