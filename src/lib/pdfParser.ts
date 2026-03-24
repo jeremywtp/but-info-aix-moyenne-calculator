@@ -173,14 +173,123 @@ async function extractTextFromPdf(file: File): Promise<string> {
 }
 
 /**
- * Parse un bulletin PDF ScoDoc et retourne les notes par ressource
- * Les IDs retournes sont normalises pour matcher les IDs de l'app
+ * Detecte le semestre, parcours et formation depuis le texte brut du PDF
+ */
+function detectPdfInfo(text: string): {
+  semester: number | null;
+  parcours: "A" | "B" | null;
+  formation: "FA" | "FI" | null;
+} {
+  // Semestre : digit le plus frequent dans les IDs R{X}.XX
+  const rMatches = [...text.matchAll(/\bR(\d)\.\d/g)];
+  let semester: number | null = null;
+  if (rMatches.length > 0) {
+    const counts = new Map<number, number>();
+    for (const m of rMatches) {
+      const s = parseInt(m[1]);
+      counts.set(s, (counts.get(s) || 0) + 1);
+    }
+    semester = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  // Parcours : lettre A/B dans les IDs SAE/R (ex: SAE3.B.01, R4.A.08)
+  let parcours: "A" | "B" | null = null;
+  if (/(?:R|S|SAE)\d+\.A\./i.test(text)) parcours = "A";
+  else if (/(?:R|S|SAE)\d+\.B\./i.test(text)) parcours = "B";
+  // Fallback : nom du parcours dans le format AMU
+  if (!parcours && /parcours.*Déploiement/i.test(text)) parcours = "B";
+  if (!parcours && /parcours.*Réalisation/i.test(text)) parcours = "A";
+
+  // Formation : presence d'Alternance (FA) ou Stage (FI)
+  let formation: "FA" | "FI" | null = null;
+  if (/\bAlternance\b/i.test(text)) formation = "FA";
+  else if (/\bStage\b/i.test(text)) formation = "FI";
+
+  return { semester, parcours, formation };
+}
+
+/**
+ * Valide que le PDF correspond a la configuration attendue
+ * Lance une Error descriptive en cas de mismatch
+ */
+function validatePdfConfig(
+  text: string,
+  semesterKey: string,
+  semesterData: SemesterData,
+): void {
+  const detected = detectPdfInfo(text);
+  const expectedSem = parseInt(semesterKey.replace("s", ""));
+  const expectedYear = Math.ceil(expectedSem / 2);
+
+  // Verifier le semestre
+  if (detected.semester !== null && detected.semester !== expectedSem) {
+    const detectedYear = Math.ceil(detected.semester / 2);
+    if (detectedYear !== expectedYear) {
+      throw new Error(
+        `Ce bulletin correspond au Semestre ${detected.semester} (BUT ${detectedYear}), ` +
+        `mais vous êtes sur le Semestre ${expectedSem} (BUT ${expectedYear}). ` +
+        `Sélectionnez la bonne année avant d'importer.`,
+      );
+    }
+    throw new Error(
+      `Ce bulletin correspond au Semestre ${detected.semester}, ` +
+      `mais vous êtes sur le Semestre ${expectedSem}. ` +
+      `Importez ce PDF dans le bon semestre.`,
+    );
+  }
+
+  // Verifier le parcours (BUT 2+ uniquement)
+  if (detected.parcours) {
+    let expectedParcours: "A" | "B" | null = null;
+    for (const r of semesterData.ressources) {
+      if (/\.[AB]\./.test(r.id)) {
+        expectedParcours = r.id.includes(".A.") ? "A" : "B";
+        break;
+      }
+    }
+    if (expectedParcours && detected.parcours !== expectedParcours) {
+      throw new Error(
+        `Ce bulletin correspond au parcours ${detected.parcours}, ` +
+        `mais vous êtes sur le parcours ${expectedParcours}. ` +
+        `Vérifiez votre configuration.`,
+      );
+    }
+  }
+
+  // Verifier la formation
+  if (detected.formation) {
+    let expectedFormation: "FA" | "FI" | null = null;
+    for (const r of semesterData.ressources) {
+      if (r.id === "Alternance") { expectedFormation = "FA"; break; }
+      if (r.id === "Stage") { expectedFormation = "FI"; break; }
+    }
+    const labels = { FA: "alternance (FA)", FI: "initiale (FI)" };
+    if (expectedFormation && detected.formation !== expectedFormation) {
+      throw new Error(
+        `Ce bulletin correspond à la formation ${labels[detected.formation]}, ` +
+        `mais vous êtes en formation ${labels[expectedFormation]}. ` +
+        `Vérifiez votre configuration.`,
+      );
+    }
+  }
+}
+
+/**
+ * Parse un bulletin PDF et retourne les notes par ressource
+ * Valide que le PDF correspond au semestre selectionne
  */
 export async function parseGradesPdf(
   file: File,
   semesterData: SemesterData | undefined,
+  semesterKey?: string,
 ): Promise<Record<string, string>> {
   const text = await extractTextFromPdf(file);
+
+  // Validation de la configuration
+  if (semesterKey && semesterData) {
+    validatePdfConfig(text, semesterKey, semesterData);
+  }
+
   const rawNotes = extractNotesFromText(text);
 
   // Si on a les donnees du semestre, matcher seulement les IDs qui existent

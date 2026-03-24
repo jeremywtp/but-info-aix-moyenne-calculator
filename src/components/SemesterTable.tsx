@@ -51,7 +51,7 @@ export const SemesterTable = memo(function SemesterTable({
 
     setImporting(true);
     try {
-      const grades = await parseGradesPdf(file, data);
+      const grades = await parseGradesPdf(file, data, semesterKey);
       const count = Object.keys(grades).length;
       if (count === 0) {
         alert("Aucune note trouvee dans ce PDF pour ce semestre.");
@@ -62,7 +62,7 @@ export const SemesterTable = memo(function SemesterTable({
       }
     } catch (err) {
       console.error("PDF import error:", err);
-      alert("Erreur lors de la lecture du PDF. Voir la console pour plus de details.");
+      alert(err instanceof Error ? err.message : "Erreur lors de la lecture du PDF.");
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
