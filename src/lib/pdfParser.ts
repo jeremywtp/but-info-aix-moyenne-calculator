@@ -27,78 +27,86 @@ function normalizePdfId(raw: string): string {
 }
 
 /**
- * Extrait les notes depuis le texte brut d'un bulletin PDF ScoDoc
- * Retourne un Map de resourceId → note (string)
+ * Extrait l'ID de ressource depuis le contenu d'une ligne
+ * Gere les deux formats (ScoDoc et AMU)
+ */
+function extractResourceId(text: string): string {
+  // R3.01, R2.01, R1.L.1, R3.A.L1, R4.A.08, etc.
+  const rMatch = text.match(/\b(R\d+\.[^\s]+)/);
+  if (rMatch) return rMatch[1];
+
+  // SAE forme longue (AMU) : SAE3.B.01 → S3.B.01
+  const saeParcours = text.match(/SAE(\d+\.[AB]\.?\d+)/);
+  if (saeParcours) return "S" + saeParcours[1];
+
+  // SAE forme longue sans parcours (AMU BUT 1) : SAE1.01 → S1.01
+  const saeSimple = text.match(/SAE(\d+\.\d+)/);
+  if (saeSimple) return "S" + saeSimple[1];
+
+  // SAE forme courte avec parcours (ScoDoc) : S3.A.01, S3.B.1
+  const sParcours = text.match(/\b(S\d+\.[AB]\.?\d+)/);
+  if (sParcours) return sParcours[1];
+
+  // SAE forme courte sans parcours (ScoDoc BUT 1) : S2.01, S1.06
+  const sSimple = text.match(/\b(S\d+\.\d+)/);
+  if (sSimple) return sSimple[1];
+
+  // Portfolio : "P2 Portfolio S2" ou "Portfolio"
+  if (/\bPortfolio\b/i.test(text)) return "Portfolio";
+
+  // Alternance / Stage
+  const special = text.match(/\b(Alternance|Stage)\b/i);
+  if (special) return special[1];
+
+  return "";
+}
+
+/**
+ * Extrait les notes depuis le texte brut d'un bulletin PDF
+ * Gere deux formats :
+ *   - ScoDoc : "R3.01 R3.01 Dev Web 10.0 15.83"
+ *   - AMU    : "WIN3R01A R3.01 Développement Web 16.67/20"
  */
 function extractNotesFromText(text: string): Map<string, string> {
   const notes = new Map<string, string>();
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // Pattern des lignes de ressources dans les sections UE (pages 1-2) :
-    // "R3.01 R3.01 Développement Web 10.0 15.83"
-    // "S3.B.1 SAE3.B.01 Serv appli 20.0 18.00"
-    // "Alternance S3 Alternance 20.0 16.00"
-    //
-    // On cherche : fin de ligne = {coef} {note} (deux nombres)
-    // La note peut avoir un zero en tete (01.75, 09.70)
-    const match = line.match(
+    let note = "";
+    let lineContent = line;
+
+    // === FORMAT 1 : ScoDoc — fin de ligne = {coef} {note XX.XX} ===
+    const scodocMatch = line.match(
       /^(.+?)\s+(\d+\.?\d*)\s+(\d{2}\.\d{2})\s*$/,
     );
-    if (!match) continue;
+    if (scodocMatch) {
+      lineContent = scodocMatch[1];
+      note = scodocMatch[3];
 
-    const prefix = match[1];
-    const note = match[3];
-
-    // Ignorer les lignes d'en-tete UE (contiennent "Rang:" ou "ECTS:" ou "Promotion")
-    if (/Rang:|ECTS:|Promotion|min\.|moy\.|max\./i.test(prefix)) continue;
-
-    // Extraire l'ID de la ressource (premier mot/groupe avant le nom descriptif)
-    // "R3.01 R3.01 Développement Web" → "R3.01"
-    // "S3.B.1 SAE3.B.01 Serv appli" → "S3.B.1"
-    // "Alternance S3 Alternance" → "Alternance S3"
-    let resourceId = "";
-
-    // R3.01, R2.01, R1.L.1, R3.A.L1, etc.
-    const rMatch = prefix.match(/^(R\d+\.[^\s]+)/);
-    if (rMatch) {
-      resourceId = rMatch[1];
+      // Ignorer les lignes d'en-tete UE ScoDoc
+      if (/Rang:|ECTS:|Promotion|min\.|moy\.|max\./i.test(lineContent)) continue;
     }
 
-    // SAE avec parcours : S3.A.01, S3.B.1, etc.
-    if (!resourceId) {
-      const sParcoursMatch = prefix.match(/^(S\d+\.[AB]\.?\d+)/);
-      if (sParcoursMatch) resourceId = sParcoursMatch[1];
+    // === FORMAT 2 : AMU — note au format {XX.XX}/20 ===
+    if (!note) {
+      const amuMatch = line.match(/(\d+\.?\d*)\/20/);
+      if (amuMatch) {
+        note = amuMatch[1];
+
+        // Ignorer les lignes UE, semestre, en-tetes
+        if (/UE\d+\.\d+|S\d+\s+BUT|ÉLÉMENTS|Code\s+Libellé|Signification|DEF\s*:/i.test(line)) continue;
+      }
     }
 
-    // SAE sans parcours (BUT 1) : S2.01, S1.06, etc.
-    if (!resourceId) {
-      const sSimpleMatch = prefix.match(/^(S\d+\.\d+)/);
-      if (sSimpleMatch) resourceId = sSimpleMatch[1];
-    }
-
-    // Portfolio : "P2 Portfolio S2" → "Portfolio"
-    if (!resourceId) {
-      const pMatch = prefix.match(/^P\d+\s+Portfolio/i);
-      if (pMatch) resourceId = "P-Portfolio";
-    }
-
-    // Alternance / Stage : "Alternance S3" → "Alternance"
-    if (!resourceId) {
-      const specialMatch = prefix.match(
-        /^(Alternance|Stage)\s+S\d+/i,
-      );
-      if (specialMatch) resourceId = specialMatch[0];
-    }
-
-    if (!resourceId) continue;
-
-    // Ignorer les notes avec "~" (pas de note)
+    if (!note) continue;
     if (note === "~" || note.includes("~")) continue;
+
+    const resourceId = extractResourceId(lineContent);
+    if (!resourceId) continue;
 
     const normalizedId = normalizePdfId(resourceId);
 
-    // Ne garder que la premiere occurrence (toutes les occurrences ont la meme note)
+    // Ne garder que la premiere occurrence
     if (!notes.has(normalizedId)) {
       notes.set(normalizedId, note);
     }
@@ -109,6 +117,8 @@ function extractNotesFromText(text: string): Map<string, string> {
 
 /**
  * Extrait le texte d'un fichier PDF via pdfjs-dist
+ * Regroupe les items par position Y (meme ligne visuelle)
+ * puis trie par position X pour reconstituer l'ordre de lecture
  */
 async function extractTextFromPdf(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
@@ -121,22 +131,42 @@ async function extractTextFromPdf(file: File): Promise<string> {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    // Regrouper les items par position Y pour reconstituer les lignes
-    let lastY = -1;
-    let line = "";
+
+    // Collecter tous les items avec leurs coordonnees
+    const items: { x: number; y: number; str: string }[] = [];
     for (const item of content.items) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const a = item as any;
       if (!a.transform) continue;
-      const y = Math.round(a.transform[5]);
-      if (lastY !== -1 && Math.abs(y - lastY) > 2) {
-        lines.push(line.trim());
-        line = "";
-      }
-      line += a.str ?? "";
-      lastY = y;
+      items.push({
+        x: Math.round(a.transform[4]),
+        y: Math.round(a.transform[5]),
+        str: a.str ?? "",
+      });
     }
-    if (line) lines.push(line.trim());
+
+    // Regrouper par Y (seuil de 2px) — gere les items non-adjacents du meme Y
+    const yGroups = new Map<number, { x: number; str: string }[]>();
+    for (const it of items) {
+      let groupY = it.y;
+      for (const existingY of yGroups.keys()) {
+        if (Math.abs(existingY - it.y) <= 2) {
+          groupY = existingY;
+          break;
+        }
+      }
+      if (!yGroups.has(groupY)) yGroups.set(groupY, []);
+      yGroups.get(groupY)!.push({ x: it.x, str: it.str });
+    }
+
+    // Trier les groupes par Y descendant (haut → bas dans le PDF)
+    // puis les items de chaque groupe par X croissant (gauche → droite)
+    const sorted = [...yGroups.entries()].sort((a, b) => b[0] - a[0]);
+    for (const [, group] of sorted) {
+      group.sort((a, b) => a.x - b.x);
+      const text = group.map((g) => g.str).join("").trim();
+      if (text) lines.push(text);
+    }
   }
 
   return lines.join("\n");

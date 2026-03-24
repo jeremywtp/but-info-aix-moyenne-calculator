@@ -352,6 +352,12 @@ tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.01); }
   color: var(--success) !important;
 }
 
+.note-input.input-disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
 

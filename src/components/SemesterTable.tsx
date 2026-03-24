@@ -136,20 +136,24 @@ export const SemesterTable = memo(function SemesterTable({
             </tr>
             <tr className="notes-row">
               <td><div className="notes-label">Notes /20</div></td>
-              {data.ressources.map(r => (
-                <td key={r.id}>
-                  <input
-                    type="number"
-                    className={`note-input ${getInputClass(notes[r.id])}`}
-                    value={notes[r.id] || ""}
-                    onChange={e => onNoteChange(semesterKey, r.id, e.target.value)}
-                    min={0}
-                    max={20}
-                    step={0.01}
-                    placeholder="--"
-                  />
-                </td>
-              ))}
+              {data.ressources.map(r => {
+                const hasCoeff = data.ues.some(ue => ue.c[r.id] > 0);
+                return (
+                  <td key={r.id}>
+                    <input
+                      type="number"
+                      className={`note-input ${hasCoeff ? getInputClass(notes[r.id]) : "input-disabled"}`}
+                      value={notes[r.id] || ""}
+                      onChange={e => onNoteChange(semesterKey, r.id, e.target.value)}
+                      min={0}
+                      max={20}
+                      step={0.01}
+                      placeholder="--"
+                      disabled={!hasCoeff}
+                    />
+                  </td>
+                );
+              })}
               <td colSpan={2} />
             </tr>
           </thead>
