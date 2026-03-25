@@ -80,9 +80,9 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
       </div>
 
       <div className="dapp-content">
-        {/* Moyenne Hero */}
+        {/* Moyenne Hero + Competences RCUE */}
         <div className="dapp-hero">
-          <div className="dapp-hero-label">&gt; MOYENNE_ANNUELLE</div>
+          <div className="dapp-hero-label">&gt; BILAN_ANNUEL</div>
           <div className="dapp-hero-row">
             <span className={`dapp-hero-value ${annualAvg !== null ? (annualAvg >= 10 ? "pass" : "fail") : ""}`}>
               {annualAvg !== null ? annualAvg.toFixed(2) : "--"}
@@ -95,6 +95,38 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
               </div>
             </div>
           </div>
+          {s1 && s2 && s1.hasData && s2.hasData && (() => {
+            const len = Math.min(s1.ueDetails.length, s2.ueDetails.length);
+            const comps = [];
+            for (let i = 0; i < len; i++) {
+              const ue1 = s1.ueDetails[i];
+              const ue2 = s2.ueDetails[i];
+              if (ue1.moy !== null && ue2.moy !== null) {
+                const rcue = (ue1.moy + ue2.moy) / 2;
+                const hasCMP = ue1.statut === "CMP" || ue2.statut === "CMP";
+                comps.push({ nom: ue1.nom, rcue, valide: rcue >= 10, hasCMP, ue1, ue2 });
+              }
+            }
+            if (comps.length === 0) return null;
+            return (
+              <div className="dapp-rcue-section">
+                <div className="dapp-rcue-label">&gt; COMPETENCES (RCUE)</div>
+                <div className="dapp-rcue-grid">
+                  {comps.map(c => (
+                    <div key={c.nom} className={`dapp-rcue-card ${c.valide ? "val" : "nval"}`}>
+                      <div className="dapp-rcue-name">{c.nom}</div>
+                      <div className="dapp-rcue-avg">{c.rcue.toFixed(2)}</div>
+                      <div className="dapp-rcue-badge">{c.valide ? "VAL" : "NON VAL"}</div>
+                      <div className="dapp-rcue-detail">
+                        <span className={c.ue1.statut === "CMP" ? "cmp" : ""}>{c.ue1.ue}: {c.ue1.moy!.toFixed(2)}{c.ue1.statut === "CMP" ? " CMP" : ""}</span>
+                        <span className={c.ue2.statut === "CMP" ? "cmp" : ""}>{c.ue2.ue}: {c.ue2.moy!.toFixed(2)}{c.ue2.statut === "CMP" ? " CMP" : ""}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Stats Grid 2x2 */}

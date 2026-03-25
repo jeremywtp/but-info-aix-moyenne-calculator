@@ -20,6 +20,7 @@ export default function Home() {
     resetSemester,
     currentData,
     semesters,
+    rawStats,
     semesterStats,
     decision,
     annualAvg,
@@ -32,10 +33,11 @@ export default function Home() {
 
   const s1Notes = notes[semesters[0]] || EMPTY_NOTES;
   const s2Notes = notes[semesters[1]] || EMPTY_NOTES;
-  const s1UeResults = semesterStats[0]?.ueDetails || EMPTY_UE;
-  const s2UeResults = semesterStats[1]?.ueDetails || EMPTY_UE;
-  const s1Avg = semesterStats[0]?.moyGenerale ?? null;
-  const s2Avg = semesterStats[1]?.moyGenerale ?? null;
+  // Tables et panels semestriels utilisent rawStats (NACQ, pas CMP)
+  const s1UeResults = rawStats[0]?.ueDetails || EMPTY_UE;
+  const s2UeResults = rawStats[1]?.ueDetails || EMPTY_UE;
+  const s1Avg = rawStats[0]?.moyGenerale ?? null;
+  const s2Avg = rawStats[1]?.moyGenerale ?? null;
 
   if (!hydrated) return null;
 
@@ -53,7 +55,7 @@ export default function Home() {
         totalAvg={s1Avg}
       />
 
-      <InterStatsPanel stats={semesterStats[0]} />
+      <InterStatsPanel stats={rawStats[0]} />
 
       <SemesterTable
         semesterKey={semesters[1]}
@@ -65,7 +67,7 @@ export default function Home() {
         totalAvg={s2Avg}
       />
 
-      <InterStatsPanel stats={semesterStats[1]} />
+      <InterStatsPanel stats={rawStats[1]} />
 
       <TerminalPanel messages={messages} />
 

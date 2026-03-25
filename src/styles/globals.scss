@@ -633,6 +633,26 @@ th:last-child, td:last-child { border-right: none; }
 .dapp-hero-row:has(.dapp-hero-value.fail) .dapp-bar-fill { background: var(--error); }
 .dapp-bar-mark { position: absolute; left: 50%; top: -1px; bottom: -1px; width: 1px; background: var(--text-muted); opacity: 0.5; }
 
+.dapp-rcue-section { margin-top: 12px; }
+.dapp-rcue-label { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+.dapp-rcue-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.dapp-rcue-card { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; text-align: center; }
+.dapp-rcue-card.val { border-color: rgba(16, 185, 129, 0.3); }
+.dapp-rcue-card.nval { border-color: rgba(239, 68, 68, 0.3); }
+.dapp-rcue-name { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 4px; }
+.dapp-rcue-avg { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--text-main); }
+.dapp-rcue-card.val .dapp-rcue-avg { color: var(--success); }
+.dapp-rcue-card.nval .dapp-rcue-avg { color: var(--error); }
+.dapp-rcue-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; margin-top: 2px; padding: 2px 6px; border-radius: 2px; display: inline-block; }
+.dapp-rcue-card.val .dapp-rcue-badge { color: var(--success); background: rgba(16, 185, 129, 0.15); }
+.dapp-rcue-card.nval .dapp-rcue-badge { color: var(--error); background: rgba(239, 68, 68, 0.15); }
+.dapp-rcue-detail { display: flex; flex-direction: column; gap: 1px; margin-top: 6px; font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); }
+.dapp-rcue-detail .cmp { color: #3b82f6; font-weight: 600; }
+
+@media (max-width: 600px) {
+  .dapp-rcue-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 .dapp-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
 
 .dapp-cell { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; text-align: center; display: flex; flex-direction: column; gap: 2px; }

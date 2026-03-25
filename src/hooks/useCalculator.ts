@@ -109,6 +109,7 @@ export function useCalculator() {
     resetSemester,
     currentData,
     semesters,
+    rawStats,
     semesterStats,
     decision,
     annualAvg,
