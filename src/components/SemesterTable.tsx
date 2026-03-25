@@ -194,6 +194,23 @@ export const SemesterTable = memo(function SemesterTable({
                 {totalAvg !== null ? totalAvg.toFixed(2) : "--"}
               </td>
             </tr>
+            <tr className="bonus-row">
+              <td><div className="bonus-label">Bonus</div></td>
+              {data.ressources.map(r => <td key={r.id} />)}
+              <td />
+              <td>
+                <input
+                  type="number"
+                  className="bonus-input"
+                  value={notes["_bonus"] || ""}
+                  onChange={e => onNoteChange(semesterKey, "_bonus", e.target.value)}
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  placeholder="+0"
+                />
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

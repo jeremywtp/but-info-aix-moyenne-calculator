@@ -31,7 +31,8 @@ export function calculateSemesterStats(
   let totalEcts = 0;
   let notesCount = 0;
 
-  Object.values(notes).forEach(v => { if (v) notesCount++; });
+  Object.entries(notes).forEach(([key, v]) => { if (v && key !== "_bonus") notesCount++; });
+  const bonus = parseFloat((notes["_bonus"] || "0").replace(",", ".")) || 0;
 
   const ueDetails: UEResult[] = data.ues.map((ue, idx) => {
     let pts = 0;
@@ -46,7 +47,8 @@ export function calculateSemesterStats(
       }
     });
 
-    const moy = coeffSum ? pts / coeffSum : null;
+    const rawMoy = coeffSum ? pts / coeffSum : null;
+    const moy = rawMoy !== null && bonus > 0 ? Math.min(20, rawMoy + bonus) : rawMoy;
     let statut: UEStatus | null = null;
     if (moy !== null) {
       if (moy >= 10) statut = "ACQ";

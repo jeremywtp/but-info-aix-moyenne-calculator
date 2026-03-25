@@ -62,6 +62,33 @@ function extractResourceId(text: string): string {
 }
 
 /**
+ * Extrait la valeur du bonus depuis le texte brut du PDF
+ *   - ScoDoc : "Bonus: 0.4 - Rang: 52 / 116"
+ *   - AMU    : "WBO1BN Total bonus S1 .4/20"
+ */
+function extractBonusFromText(text: string, semesterNum: number): string | null {
+  // Format ScoDoc : "Bonus: 0.4 - Rang: ..."
+  const scodocMatch = text.match(/Bonus:\s*(\d+\.?\d*)\s*-/);
+  if (scodocMatch) {
+    const val = parseFloat(scodocMatch[1]);
+    if (val > 0) return String(val);
+  }
+
+  // Format AMU : "Total bonus S1 .4/20" ou "Total bonus S1.4/20"
+  const amuRegex = new RegExp(
+    `Total\\s+bonus\\s+S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
+    "i",
+  );
+  const amuMatch = text.match(amuRegex);
+  if (amuMatch) {
+    const val = parseFloat(amuMatch[1]);
+    if (val > 0) return String(val);
+  }
+
+  return null;
+}
+
+/**
  * Extrait les notes depuis le texte brut d'un bulletin PDF
  * Gere deux formats :
  *   - ScoDoc : "R3.01 R3.01 Dev Web 10.0 15.83"
@@ -173,24 +200,18 @@ async function extractTextFromPdf(file: File): Promise<string> {
 }
 
 /**
- * Detecte le semestre, parcours et formation depuis le texte brut du PDF
+ * Detecte les semestres, parcours et formation depuis le texte brut du PDF
+ * Un PDF AMU peut contenir plusieurs semestres (ex: S1+S2 pour une annee complete)
  */
 function detectPdfInfo(text: string): {
-  semester: number | null;
+  semesters: Set<number>;
   parcours: "A" | "B" | null;
   formation: "FA" | "FI" | null;
 } {
-  // Semestre : digit le plus frequent dans les IDs R{X}.XX
+  // Semestres : tous les digits uniques dans les IDs R{X}.XX
+  const semesters = new Set<number>();
   const rMatches = [...text.matchAll(/\bR(\d)\.\d/g)];
-  let semester: number | null = null;
-  if (rMatches.length > 0) {
-    const counts = new Map<number, number>();
-    for (const m of rMatches) {
-      const s = parseInt(m[1]);
-      counts.set(s, (counts.get(s) || 0) + 1);
-    }
-    semester = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  }
+  for (const m of rMatches) semesters.add(parseInt(m[1]));
 
   // Parcours : lettre A/B dans les IDs SAE/R (ex: SAE3.B.01, R4.A.08)
   let parcours: "A" | "B" | null = null;
@@ -205,7 +226,7 @@ function detectPdfInfo(text: string): {
   if (/\bAlternance\b/i.test(text)) formation = "FA";
   else if (/\bStage\b/i.test(text)) formation = "FI";
 
-  return { semester, parcours, formation };
+  return { semesters, parcours, formation };
 }
 
 /**
@@ -221,18 +242,22 @@ function validatePdfConfig(
   const expectedSem = parseInt(semesterKey.replace("s", ""));
   const expectedYear = Math.ceil(expectedSem / 2);
 
-  // Verifier le semestre
-  if (detected.semester !== null && detected.semester !== expectedSem) {
-    const detectedYear = Math.ceil(detected.semester / 2);
-    if (detectedYear !== expectedYear) {
+  // Verifier que le semestre attendu est present dans le PDF
+  if (detected.semesters.size > 0 && !detected.semesters.has(expectedSem)) {
+    // Verifier si c'est une erreur d'annee ou juste de semestre
+    const detectedYears = new Set([...detected.semesters].map((s) => Math.ceil(s / 2)));
+    const detectedList = [...detected.semesters].sort().join(" et ");
+
+    if (!detectedYears.has(expectedYear)) {
+      const detectedYear = [...detectedYears][0];
       throw new Error(
-        `Ce bulletin correspond au Semestre ${detected.semester} (BUT ${detectedYear}), ` +
+        `Ce bulletin contient les Semestres ${detectedList} (BUT ${detectedYear}), ` +
         `mais vous êtes sur le Semestre ${expectedSem} (BUT ${expectedYear}). ` +
         `Sélectionnez la bonne année avant d'importer.`,
       );
     }
     throw new Error(
-      `Ce bulletin correspond au Semestre ${detected.semester}, ` +
+      `Ce bulletin contient les Semestres ${detectedList}, ` +
       `mais vous êtes sur le Semestre ${expectedSem}. ` +
       `Importez ce PDF dans le bon semestre.`,
     );
@@ -296,16 +321,19 @@ export async function parseGradesPdf(
   const result: Record<string, string> = {};
 
   if (semesterData) {
-    const appIds = new Set(semesterData.ressources.map((r) => r.id));
+    // Exclure les ressources sans coefficient (ex: Portfolio en S1)
+    const activeIds = new Set(
+      semesterData.ressources
+        .filter((r) => semesterData.ues.some((ue) => ue.c[r.id] > 0))
+        .map((r) => r.id),
+    );
 
     for (const [pdfId, note] of rawNotes) {
-      if (appIds.has(pdfId)) {
+      if (activeIds.has(pdfId)) {
         result[pdfId] = note;
       } else {
-        // Essayer quelques variantes de matching
-        // "S3.B.01" dans le PDF pourrait etre "S3.B.01" dans l'app
-        // mais aussi tenter sans le zero : "S3.B.1" → "S3.B.01"
-        for (const appId of appIds) {
+        // Essayer quelques variantes de matching (zero-padding)
+        for (const appId of activeIds) {
           if (
             appId.replace(/\.0(\d)$/, ".$1") ===
             pdfId.replace(/\.0(\d)$/, ".$1")
@@ -321,6 +349,13 @@ export async function parseGradesPdf(
     for (const [id, note] of rawNotes) {
       result[id] = note;
     }
+  }
+
+  // Extraire le bonus si present dans le PDF
+  if (semesterKey) {
+    const semNum = parseInt(semesterKey.replace("s", ""));
+    const bonus = extractBonusFromText(text, semNum);
+    if (bonus) result["_bonus"] = bonus;
   }
 
   return result;
