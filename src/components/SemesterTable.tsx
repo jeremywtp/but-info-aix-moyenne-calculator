@@ -211,6 +211,23 @@ export const SemesterTable = memo(function SemesterTable({
                 />
               </td>
             </tr>
+            <tr className="malus-row">
+              <td><div className="malus-label">Malus</div></td>
+              {data.ressources.map(r => <td key={r.id} />)}
+              <td />
+              <td>
+                <input
+                  type="number"
+                  className="malus-input"
+                  value={notes["_malus"] || ""}
+                  onChange={e => onNoteChange(semesterKey, "_malus", e.target.value)}
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  placeholder="-0"
+                />
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

@@ -89,6 +89,33 @@ function extractBonusFromText(text: string, semesterNum: number): string | null 
 }
 
 /**
+ * Extrait la valeur du malus depuis le texte brut du PDF
+ *   - ScoDoc : "Malus: 0.2 - Rang: 57 / 112"
+ *   - AMU    : "WMAS2 Total Malus UE S2 .2/20"
+ */
+function extractMalusFromText(text: string, semesterNum: number): string | null {
+  // Format ScoDoc : "Malus: 0.2 - Rang: ..."
+  const scodocMatch = text.match(/Malus:\s*(\d+\.?\d*)\s*-/);
+  if (scodocMatch) {
+    const val = parseFloat(scodocMatch[1]);
+    if (val > 0) return String(val);
+  }
+
+  // Format AMU : "Total Malus UE S2 .2/20" ou "Total Malus S2.2/20"
+  const amuRegex = new RegExp(
+    `Total\\s+Malus.*?S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
+    "i",
+  );
+  const amuMatch = text.match(amuRegex);
+  if (amuMatch) {
+    const val = parseFloat(amuMatch[1]);
+    if (val > 0) return String(val);
+  }
+
+  return null;
+}
+
+/**
  * Extrait les notes depuis le texte brut d'un bulletin PDF
  * Gere deux formats :
  *   - ScoDoc : "R3.01 R3.01 Dev Web 10.0 15.83"
@@ -356,6 +383,8 @@ export async function parseGradesPdf(
     const semNum = parseInt(semesterKey.replace("s", ""));
     const bonus = extractBonusFromText(text, semNum);
     if (bonus) result["_bonus"] = bonus;
+    const malus = extractMalusFromText(text, semNum);
+    if (malus) result["_malus"] = malus;
   }
 
   return result;

@@ -31,8 +31,9 @@ export function calculateSemesterStats(
   let totalEcts = 0;
   let notesCount = 0;
 
-  Object.entries(notes).forEach(([key, v]) => { if (v && key !== "_bonus") notesCount++; });
+  Object.entries(notes).forEach(([key, v]) => { if (v && !key.startsWith("_")) notesCount++; });
   const bonus = parseFloat((notes["_bonus"] || "0").replace(",", ".")) || 0;
+  const malus = parseFloat((notes["_malus"] || "0").replace(",", ".")) || 0;
 
   const ueDetails: UEResult[] = data.ues.map((ue, idx) => {
     let pts = 0;
@@ -48,7 +49,8 @@ export function calculateSemesterStats(
     });
 
     const rawMoy = coeffSum ? pts / coeffSum : null;
-    const moy = rawMoy !== null && bonus > 0 ? Math.min(20, rawMoy + bonus) : rawMoy;
+    const adjusted = rawMoy !== null ? rawMoy + bonus - malus : null;
+    const moy = adjusted !== null ? Math.max(0, Math.min(20, adjusted)) : null;
     let statut: UEStatus | null = null;
     if (moy !== null) {
       if (moy >= 10) statut = "ACQ";
@@ -89,7 +91,7 @@ export function calculateSemesterStats(
     uesDEF,
     ectsAcquis,
     notesCount,
-    totalNotes: data.ressources.length,
+    totalNotes: data.ressources.filter(r => data.ues.some(ue => ue.c[r.id] > 0)).length,
     semestreValide,
     hasData: totalEcts > 0,
   };

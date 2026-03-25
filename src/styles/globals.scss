@@ -442,6 +442,32 @@ input[type=number] { -moz-appearance: textfield; }
 .bonus-input::placeholder { color: rgba(245, 158, 11, 0.25); }
 .bonus-input:focus { outline: none; border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.05); }
 
+.malus-row td { border-bottom: none; }
+.malus-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--error);
+}
+
+.malus-input {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--error);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  min-width: 35px;
+  padding: 4px 2px;
+  border-radius: 3px;
+}
+
+.malus-input::placeholder { color: rgba(239, 68, 68, 0.25); }
+.malus-input:focus { outline: none; border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.05); }
+
 .notes-row td {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
