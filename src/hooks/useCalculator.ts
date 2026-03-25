@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Config } from "@/types";
 import {
   getSemesters, getConfigKey,
-  calculateSemesterStats, determineDecision,
-  calculateAnnualAvg, generateMessages,
+  calculateSemesterStats, applyRCUECompensation,
+  determineDecision, calculateAnnualAvg, generateMessages,
 } from "@/lib/calculations";
 import { useSheetData } from "@/hooks/useSheetData";
 
@@ -73,12 +73,21 @@ export function useCalculator() {
     setConfig(prev => ({ ...prev, ...partial }));
   }, []);
 
-  const semesterStats = useMemo(() => {
+  // Etape 1 : calcul des stats brutes par semestre
+  const rawStats = useMemo(() => {
     return semesters.map((sem) => {
       const semData = currentData?.[sem];
       return calculateSemesterStats(semData, notes[sem] || {}, sem.toUpperCase());
     });
   }, [currentData, notes, semesters[0], semesters[1]]);
+
+  // Etape 2 : compensation RCUE (NACQ → CMP si competence annuelle >= 10)
+  const semesterStats = useMemo(() => {
+    const s1Data = currentData?.[semesters[0]];
+    const s2Data = currentData?.[semesters[1]];
+    const [s1, s2] = applyRCUECompensation(rawStats[0], rawStats[1], s1Data, s2Data);
+    return [s1, s2] as const;
+  }, [rawStats, currentData, semesters[0], semesters[1]]);
 
   const decision = useMemo(() => {
     return determineDecision(semesterStats[0], semesterStats[1], config);
@@ -89,7 +98,7 @@ export function useCalculator() {
   }, [semesterStats]);
 
   const messages = useMemo(() => {
-    return generateMessages(semesterStats, decision, config);
+    return generateMessages([semesterStats[0], semesterStats[1]], decision, config);
   }, [semesterStats, decision, config]);
 
   return {

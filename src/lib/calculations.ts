@@ -74,11 +74,34 @@ export function calculateSemesterStats(
     };
   });
 
+  return buildSemesterResult(ueDetails, data, semLabel, notesCount);
+}
+
+/**
+ * Construit un SemesterResult a partir des UEResult (reutilise apres RCUE)
+ */
+function buildSemesterResult(
+  ueDetails: UEResult[],
+  data: SemesterData,
+  semLabel: string,
+  notesCount: number,
+): SemesterResult {
+  let totalPtsR = 0;
+  let totalEctsR = 0;
+  for (const ue of ueDetails) {
+    if (ue.moy !== null) {
+      const ects = data.ues.find(u => u.ue === ue.ue)?.ects ?? ue.ects;
+      totalPtsR += ue.moy * ects;
+      totalEctsR += ects;
+    }
+  }
+
   const uesACQ = ueDetails.filter(u => u.statut === "ACQ").length;
+  const uesCMP = ueDetails.filter(u => u.statut === "CMP").length;
   const uesNACQ = ueDetails.filter(u => u.statut === "NACQ").length;
   const uesDEF = ueDetails.filter(u => u.statut === "DEF").length;
   const ectsAcquis = ueDetails.reduce((acc, u) => acc + u.ectsAcquis, 0);
-  const moyGenerale = totalEcts ? totalPts / totalEcts : null;
+  const moyGenerale = totalEctsR ? totalPtsR / totalEctsR : null;
   const semestreValide = moyGenerale !== null && moyGenerale >= 10 && uesDEF === 0;
 
   return {
@@ -87,14 +110,57 @@ export function calculateSemesterStats(
     ueDetails,
     uesTotal: data.ues.length,
     uesACQ,
+    uesCMP,
     uesNACQ,
     uesDEF,
     ectsAcquis,
     notesCount,
     totalNotes: data.ressources.filter(r => data.ues.some(ue => ue.c[r.id] > 0)).length,
     semestreValide,
-    hasData: totalEcts > 0,
+    hasData: totalEctsR > 0,
   };
+}
+
+/**
+ * Applique la compensation RCUE : si la moyenne annuelle d'une competence >= 10,
+ * les UE NACQ (8-10) de cette competence passent en CMP avec ECTS acquis.
+ * Les UE DEF (< 8) ne sont jamais compensables.
+ */
+export function applyRCUECompensation(
+  s1: SemesterResult | null,
+  s2: SemesterResult | null,
+  s1Data: SemesterData | undefined,
+  s2Data: SemesterData | undefined,
+): [SemesterResult | null, SemesterResult | null] {
+  if (!s1 || !s2 || !s1.hasData || !s2.hasData || !s1Data || !s2Data) return [s1, s2];
+
+  const len = Math.min(s1.ueDetails.length, s2.ueDetails.length);
+  const ue1Updated = s1.ueDetails.map(u => ({ ...u }));
+  const ue2Updated = s2.ueDetails.map(u => ({ ...u }));
+
+  for (let i = 0; i < len; i++) {
+    const ue1 = ue1Updated[i];
+    const ue2 = ue2Updated[i];
+    if (ue1.moy === null || ue2.moy === null) continue;
+
+    const rcueMoy = (ue1.moy + ue2.moy) / 2;
+    if (rcueMoy >= 10) {
+      // Compenser les NACQ (jamais les DEF)
+      if (ue1.statut === "NACQ") {
+        ue1.statut = "CMP";
+        ue1.ectsAcquis = ue1.ects;
+      }
+      if (ue2.statut === "NACQ") {
+        ue2.statut = "CMP";
+        ue2.ectsAcquis = ue2.ects;
+      }
+    }
+  }
+
+  return [
+    buildSemesterResult(ue1Updated, s1Data, s1.sem, s1.notesCount),
+    buildSemesterResult(ue2Updated, s2Data, s2.sem, s2.notesCount),
+  ];
 }
 
 export function determineDecision(
@@ -183,13 +249,19 @@ export function generateMessages(
       messages.push({ type: "error", text: `[${s.sem}] ALERTE : ${s.uesDEF} UE defaillante${s.uesDEF > 1 ? "s" : ""} → ${list}. Une note < 8/20 est eliminatoire et bloque la validation automatique du semestre.` });
     }
 
+    if (s.uesCMP > 0) {
+      const list = s.ueDetails.filter(u => u.statut === "CMP").map(u => `${u.ue} (${u.moy!.toFixed(2)})`).join(", ");
+      messages.push({ type: "success", text: `[${s.sem}] ${s.uesCMP} UE compensee${s.uesCMP > 1 ? "s" : ""} par RCUE → ${list}. ECTS acquis par compensation annuelle.` });
+    }
+
     if (s.uesNACQ > 0) {
       const list = s.ueDetails.filter(u => u.statut === "NACQ").map(u => `${u.ue} (${u.moy!.toFixed(2)})`).join(", ");
-      messages.push({ type: "warning", text: `[${s.sem}] Attention : ${s.uesNACQ} UE entre 8 et 10/20 → ${list}. Ces UE peuvent etre compensees si votre moyenne generale atteint 10/20.` });
+      messages.push({ type: "warning", text: `[${s.sem}] Attention : ${s.uesNACQ} UE entre 8 et 10/20 → ${list}. Ces UE peuvent etre compensees si la competence annuelle (RCUE) atteint 10/20.` });
     }
 
     if (s.semestreValide) {
-      messages.push({ type: "success", text: `[${s.sem}] SEMESTRE VALIDE : Moyenne ${s.moyGenerale.toFixed(2)}/20 | ${s.ectsAcquis}/30 ECTS acquis | ${s.uesACQ}/${s.uesTotal} UE validees.` });
+      const uesValidees = s.uesACQ + (s.uesCMP || 0);
+      messages.push({ type: "success", text: `[${s.sem}] SEMESTRE VALIDE : Moyenne ${s.moyGenerale.toFixed(2)}/20 | ${s.ectsAcquis}/30 ECTS acquis | ${uesValidees}/${s.uesTotal} UE validees.` });
     } else if (s.moyGenerale >= 10 && s.uesDEF > 0) {
       messages.push({ type: "error", text: `[${s.sem}] SEMESTRE NON VALIDE : Votre moyenne de ${s.moyGenerale.toFixed(2)}/20 est suffisante, mais la presence d'UE eliminatoire(s) < 8 bloque la validation.` });
     } else if (s.moyGenerale < 10) {
@@ -240,7 +312,10 @@ export function generateMessages(
     }
 
     messages.push({ type: statutType, text: `>>> DECISION ANNEE : ${statutAnnee}` });
-    messages.push({ type: "info", text: `[RECAPITULATIF] Moyenne annuelle : ${moyAnnuelle.toFixed(2)}/20 | ECTS : ${totalECTS}/60 | UE : ${totalACQ} ACQ + ${s3.uesNACQ + s4.uesNACQ} NACQ + ${totalDEF} DEF = ${totalUE} total.` });
+    const totalCMP = (s3.uesCMP || 0) + (s4.uesCMP || 0);
+    const totalNACQ = s3.uesNACQ + s4.uesNACQ;
+    const cmpStr = totalCMP > 0 ? ` + ${totalCMP} CMP` : "";
+    messages.push({ type: "info", text: `[RECAPITULATIF] Moyenne annuelle : ${moyAnnuelle.toFixed(2)}/20 | ECTS : ${totalECTS}/60 | UE : ${totalACQ} ACQ${cmpStr} + ${totalNACQ} NACQ + ${totalDEF} DEF = ${totalUE} total.` });
   }
 
   if (messages.length === 0) {

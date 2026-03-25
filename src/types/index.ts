@@ -30,7 +30,7 @@ export interface Config {
   but1Validated: boolean;
 }
 
-export type UEStatus = "ACQ" | "NACQ" | "DEF";
+export type UEStatus = "ACQ" | "CMP" | "NACQ" | "DEF";
 
 export interface UEResult {
   ue: string;
@@ -48,6 +48,7 @@ export interface SemesterResult {
   ueDetails: UEResult[];
   uesTotal: number;
   uesACQ: number;
+  uesCMP: number;
   uesNACQ: number;
   uesDEF: number;
   ectsAcquis: number;

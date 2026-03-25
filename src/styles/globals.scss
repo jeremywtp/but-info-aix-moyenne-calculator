@@ -565,6 +565,10 @@ th:last-child, td:last-child { border-right: none; }
 .inter-ue-card.acq .inter-ue-avg { color: var(--success); }
 .inter-ue-card.acq .inter-ue-statut { color: var(--success); background: rgba(16, 185, 129, 0.15); }
 
+.inter-ue-card.cmp { border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.08); }
+.inter-ue-card.cmp .inter-ue-avg { color: #3b82f6; }
+.inter-ue-card.cmp .inter-ue-statut { color: #3b82f6; background: rgba(59, 130, 246, 0.15); }
+
 .inter-ue-card.nacq { border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); }
 .inter-ue-card.nacq .inter-ue-avg { color: #f59e0b; }
 .inter-ue-card.nacq .inter-ue-statut { color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
@@ -658,6 +662,7 @@ th:last-child, td:last-child { border-right: none; }
 .dapp-ue { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
 .dapp-ue-n { font-size: 16px; font-weight: 700; margin-right: 2px; }
 .dapp-ue.acq .dapp-ue-n { color: var(--success); }
+.dapp-ue.cmp .dapp-ue-n { color: #3b82f6; }
 .dapp-ue.nacq .dapp-ue-n { color: #f59e0b; }
 .dapp-ue.def .dapp-ue-n { color: var(--error); }
 .dapp-ue-t { opacity: 0.5; font-size: 9px; }

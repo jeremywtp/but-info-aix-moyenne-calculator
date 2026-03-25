@@ -53,6 +53,7 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
   const ects2 = s2?.ectsAcquis || 0;
   const totalECTS = ects1 + ects2;
   const totalACQ = (s1?.uesACQ || 0) + (s2?.uesACQ || 0);
+  const totalCMP = (s1?.uesCMP || 0) + (s2?.uesCMP || 0);
   const totalNACQ = (s1?.uesNACQ || 0) + (s2?.uesNACQ || 0);
   const totalDEF = (s1?.uesDEF || 0) + (s2?.uesDEF || 0);
   const totalUE = (s1?.uesTotal || 0) + (s2?.uesTotal || 0);
@@ -143,13 +144,18 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
           <div className="dapp-ue acq">
             <span className="dapp-ue-n">{totalACQ}</span>ACQ<span className="dapp-ue-t">≥10</span>
           </div>
+          {totalCMP > 0 && (
+            <div className="dapp-ue cmp">
+              <span className="dapp-ue-n">{totalCMP}</span>CMP<span className="dapp-ue-t">RCUE</span>
+            </div>
+          )}
           <div className="dapp-ue nacq">
             <span className="dapp-ue-n">{totalNACQ}</span>NACQ<span className="dapp-ue-t">8-10</span>
           </div>
           <div className="dapp-ue def">
             <span className="dapp-ue-n">{totalDEF}</span>DEF<span className="dapp-ue-t">&lt;8</span>
           </div>
-          <div className="dapp-ue-total">TOTAL:{totalACQ + totalNACQ + totalDEF}/{totalUE}</div>
+          <div className="dapp-ue-total">TOTAL:{totalACQ + totalCMP + totalNACQ + totalDEF}/{totalUE}</div>
         </div>
       </div>
 

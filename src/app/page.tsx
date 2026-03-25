@@ -70,7 +70,7 @@ export default function Home() {
       <TerminalPanel messages={messages} />
 
       <AppFooter
-        semesterStats={semesterStats}
+        semesterStats={[...semesterStats]}
         decision={decision}
         annualAvg={annualAvg}
         semesters={semesters}

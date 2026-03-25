@@ -13,7 +13,7 @@ export const InterStatsPanel = memo(function InterStatsPanel({ stats }: InterSta
   let statusText = "En attente de notes";
   let statusClass = "";
   if (stats.moyGenerale !== null) {
-    if (stats.moyGenerale >= 10) {
+    if (stats.semestreValide) {
       statusText = "Semestre validé";
       statusClass = "validated";
     } else {
@@ -71,7 +71,7 @@ export const InterStatsPanel = memo(function InterStatsPanel({ stats }: InterSta
           <div className="inter-detail">
             <span className="inter-detail-icon">◆</span>
             <span className="inter-detail-label">UE validées</span>
-            <span className="inter-detail-value">{stats.uesACQ}/{stats.uesTotal}</span>
+            <span className="inter-detail-value">{stats.uesACQ + (stats.uesCMP || 0)}/{stats.uesTotal}</span>
           </div>
           <div className="inter-detail">
             <span className="inter-detail-icon">◆</span>
