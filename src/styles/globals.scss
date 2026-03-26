@@ -671,56 +671,74 @@ th:last-child, td:last-child { border-right: none; }
 .dapp-ue-t { opacity: 0.5; font-size: 9px; }
 .dapp-ue-total { color: var(--text-muted); font-size: 10px; margin-left: 8px; }
 
-.dapp-guide { margin-top: 16px; font-family: var(--font-mono); }
-
-.dapp-guide-toggle {
-  cursor: pointer;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.3);
+.dapp-guide {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  list-style: none;
-  user-select: none;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.dapp-guide-toggle::-webkit-details-marker { display: none; }
-.dapp-guide-toggle::before { content: "▸ "; }
-.dapp-guide[open] .dapp-guide-toggle::before { content: "▾ "; }
-.dapp-guide[open] .dapp-guide-toggle { border-radius: 4px 4px 0 0; border-bottom: none; }
+.dapp-guide-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-main);
+}
 
-.dapp-guide-content {
-  padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 4px 4px;
+.dapp-guide-icon { color: #a855f7; font-size: 10px; }
+.dapp-guide-sub { color: var(--text-muted); font-weight: 400; font-size: 9px; margin-left: auto; }
+
+.dapp-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+
+.dapp-guide-card {
+  background: var(--surface);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
 }
-
-.dapp-guide-section { display: flex; flex-direction: column; gap: 4px; }
 
 .dapp-guide-title {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--text-main);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 2px;
 }
 
-.dapp-guide-row { font-size: 10px; color: var(--text-muted); line-height: 1.6; display: flex; align-items: center; gap: 8px; }
+.dapp-guide-row {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dapp-guide-row span:last-child { flex: 1; }
 
 .dapp-guide-code {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  padding: 1px 6px;
+  padding: 2px 6px;
   border-radius: 2px;
-  min-width: 40px;
+  min-width: 38px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -732,8 +750,20 @@ th:last-child, td:last-child { border-right: none; }
 .dapp-guide-code.adm { color: var(--success); background: rgba(16, 185, 129, 0.15); }
 .dapp-guide-code.ajac { color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
 .dapp-guide-code.aj { color: var(--error); background: rgba(239, 68, 68, 0.15); }
+.dapp-guide-code.bonus { color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
+.dapp-guide-code.malus { color: var(--error); background: rgba(239, 68, 68, 0.15); }
 
-.dapp-guide-note { font-style: italic; opacity: 0.6; font-size: 9px; }
+.dapp-guide-note {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+  .dapp-guide-grid { grid-template-columns: 1fr; }
+}
 
 /* ═══════════════════════════════════════
    RESPONSIVE

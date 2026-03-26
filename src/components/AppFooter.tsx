@@ -143,38 +143,41 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
           </div>
         </section>
 
-        <details className="dapp-guide">
-          <summary className="dapp-guide-toggle">/// GUIDE DE VALIDATION — Arrêté du 26 mai 2022</summary>
-          <div className="dapp-guide-content">
-            <div className="dapp-guide-section">
-              <div className="dapp-guide-title">Statuts UE (par semestre)</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code acq">ACQ</span> Moyenne UE &ge; 10/20 — ECTS acquis</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code nacq">NACQ</span> 8 &le; Moyenne UE &lt; 10 — compensable par le RCUE</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code def">DEF</span> Moyenne UE &lt; 8/20 — éliminatoire, jamais compensable</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code cmp">CMP</span> UE NACQ compensée : la compétence annuelle (RCUE) &ge; 10 — ECTS acquis</div>
+        <div className="dapp-guide">
+          <div className="dapp-guide-header">
+            <span className="dapp-guide-icon">&#x2726;</span>
+            <span>GUIDE DE VALIDATION</span>
+            <span className="dapp-guide-sub">Arrêté du 26 mai 2022</span>
+          </div>
+          <div className="dapp-guide-grid">
+            <div className="dapp-guide-card">
+              <div className="dapp-guide-title">Statuts UE</div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code acq">ACQ</span><span>Moyenne &ge; 10 — ECTS acquis</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code nacq">NACQ</span><span>Entre 8 et 10 — compensable par RCUE</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code def">DEF</span><span>Inférieure à 8 — éliminatoire</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code cmp">CMP</span><span>Compensée par la compétence annuelle</span></div>
             </div>
-            <div className="dapp-guide-section">
-              <div className="dapp-guide-title">Compétences annuelles (RCUE)</div>
-              <div className="dapp-guide-row">Chaque compétence = moyenne des 2 UE correspondantes (S impair + S pair)</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code acq">VAL</span> RCUE &ge; 10/20 — les UE NACQ de cette compétence deviennent CMP</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code def">NON VAL</span> RCUE &lt; 10/20 — pas de compensation, les NACQ restent NACQ</div>
-              <div className="dapp-guide-row dapp-guide-note">Pas de compensation entre compétences différentes</div>
+            <div className="dapp-guide-card">
+              <div className="dapp-guide-title">Compétences (RCUE)</div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code acq">VAL</span><span>Moyenne des 2 UE &ge; 10</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code def">N.VAL</span><span>Moyenne des 2 UE &lt; 10</span></div>
+              <div className="dapp-guide-note">1 RCUE = UE du S impair + UE du S pair de la même compétence. Pas de compensation entre compétences.</div>
             </div>
-            <div className="dapp-guide-section">
+            <div className="dapp-guide-card">
               <div className="dapp-guide-title">Décision annuelle</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code adm">ADM</span> 2 semestres validés (moy &ge; 10 + 0 DEF) — passage + 60 ECTS</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code adm">ADM</span> Compensation : BUT précédent validé + 0 DEF + majorité UE &ge; 10</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code ajac">AJAC</span> 1 semestre validé OU &ge; 30 ECTS — passage avec dettes (jury)</div>
-              <div className="dapp-guide-row"><span className="dapp-guide-code aj">AJ</span> Aucune condition remplie — redoublement requis</div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code adm">ADM</span><span>2 semestres validés — 60 ECTS</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code adm">ADM</span><span>0 DEF + majorité ACQ + BUT-1 validé</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code ajac">AJAC</span><span>1 sem. validé ou &ge; 30 ECTS — jury</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code aj">AJ</span><span>Aucune condition — redoublement</span></div>
             </div>
-            <div className="dapp-guide-section">
-              <div className="dapp-guide-title">Bonus / Malus</div>
-              <div className="dapp-guide-row">Les bonus (sport, engagement...) s'ajoutent à chaque moyenne UE (+0.1 à +0.5)</div>
-              <div className="dapp-guide-row">Les malus (absences injustifiées) se soustraient de chaque moyenne UE</div>
-              <div className="dapp-guide-row dapp-guide-note">Les bonus/malus sont cumulables et détectés automatiquement à l'import PDF</div>
+            <div className="dapp-guide-card">
+              <div className="dapp-guide-title">Bonus &amp; Malus</div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code bonus">+</span><span>Sport, engagement... +0.1 à +0.5 par UE</span></div>
+              <div className="dapp-guide-row"><span className="dapp-guide-code malus">&minus;</span><span>Absences injustifiées, soustrait par UE</span></div>
+              <div className="dapp-guide-note">Cumulables. Détectés automatiquement à l'import PDF (ScoDoc &amp; AMU).</div>
             </div>
           </div>
-        </details>
+        </div>
       </div>
     </footer>
   );
