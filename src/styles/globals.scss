@@ -761,8 +761,55 @@ th:last-child, td:last-child { border-right: none; }
   margin-top: 2px;
 }
 
+.dapp-guide-resources {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.dapp-guide-sem-block {
+  background: var(--surface);
+  padding: 14px 16px;
+}
+
+.dapp-guide-sem-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #a855f7;
+  margin-bottom: 10px;
+}
+
+.dapp-guide-res-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.dapp-guide-res-table tr { border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
+.dapp-guide-res-table tr:last-child { border-bottom: none; }
+.dapp-guide-res-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+.dapp-res-id {
+  color: var(--text-main);
+  font-weight: 600;
+  padding: 4px 12px 4px 0;
+  white-space: nowrap;
+  width: 70px;
+}
+
+.dapp-res-name {
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
 @media (max-width: 600px) {
   .dapp-guide-grid { grid-template-columns: 1fr; }
+  .dapp-guide-resources { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════

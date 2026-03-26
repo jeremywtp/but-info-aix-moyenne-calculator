@@ -76,6 +76,7 @@ export default function Home() {
         decision={decision}
         annualAvg={annualAvg}
         semesters={semesters}
+        currentData={currentData}
       />
     </>
   );

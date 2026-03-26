@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { SemesterResult, DecisionResult } from "@/types";
+import type { SemesterResult, DecisionResult, YearData } from "@/types";
+import { RESOURCE_NAMES } from "@/data/resourceNames";
 
 interface AppFooterProps {
   semesterStats: (SemesterResult | null)[];
   decision: DecisionResult;
   annualAvg: number | null;
   semesters: string[];
+  currentData: YearData | null;
 }
 
 const descMessages: Record<string, string> = {
@@ -17,7 +19,7 @@ const descMessages: Record<string, string> = {
   "": "en_attente",
 };
 
-export function AppFooter({ semesterStats, decision, annualAvg, semesters }: AppFooterProps) {
+export function AppFooter({ semesterStats, decision, annualAvg, semesters, currentData }: AppFooterProps) {
   const [time, setTime] = useState("--:--");
   const [sessionTime, setSessionTime] = useState("00:00");
   const startRef = useRef(Date.now());
@@ -177,6 +179,33 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters }: App
               <div className="dapp-guide-note">Cumulables. Détectés automatiquement à l'import PDF (ScoDoc &amp; AMU).</div>
             </div>
           </div>
+          {currentData && (
+            <div className="dapp-guide-resources">
+              {semesters.map(sem => {
+                const semData = currentData[sem];
+                if (!semData) return null;
+                const semNum = sem.replace("s", "");
+                const ressources = semData.ressources.filter(r =>
+                  semData.ues.some(ue => ue.c[r.id] > 0),
+                );
+                return (
+                  <div key={sem} className="dapp-guide-sem-block">
+                    <div className="dapp-guide-sem-title">S{semNum} — Ressources &amp; SAE</div>
+                    <table className="dapp-guide-res-table">
+                      <tbody>
+                        {ressources.map(r => (
+                          <tr key={r.id}>
+                            <td className="dapp-res-id">{r.id}</td>
+                            <td className="dapp-res-name">{RESOURCE_NAMES[r.id] || ""}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </footer>

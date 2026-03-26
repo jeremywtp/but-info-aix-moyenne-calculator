@@ -72,8 +72,21 @@ export function parseSheetCSV(csvText: string, year: Year): YearData {
     if (firstCell.startsWith("SEMESTRE")) {
       // Ligne suivante : en-tete des IDs de ressources
       const headerRow = rows[i + 1] || [];
-      // Ligne apres : labels (trouver les colonnes "Coefficients / UE" et "ECTS")
-      const labelRow = rows[i + 2] || [];
+
+      // Detecter si la ligne i+2 est une ligne de noms (optionnelle)
+      // ou directement la ligne de labels (contient "Coefficients" ou "Libellé")
+      let namesRow: string[] | null = null;
+      let labelRowIdx = i + 2;
+      const candidateRow = rows[i + 2] || [];
+      const candidateFirst = candidateRow.slice(0, 4).join("").trim();
+      const hasLabelsMarker = candidateFirst.includes("Libellé") || candidateFirst.includes("Coefficients");
+      if (!hasLabelsMarker && rows[i + 3]) {
+        // La ligne i+2 n'est pas les labels → c'est une ligne de noms
+        namesRow = candidateRow;
+        labelRowIdx = i + 3;
+      }
+
+      const labelRow = rows[labelRowIdx] || [];
 
       let coeffTotalCol = -1;
       let ectsCol = -1;
@@ -97,7 +110,7 @@ export function parseSheetCSV(csvText: string, year: Year): YearData {
         }
       }
 
-      // Parser les lignes COMPETENCE (a partir de i + 3)
+      // Parser les lignes COMPETENCE (a partir de la ligne apres les labels)
       const ues: Array<{
         ue: string;
         nom: string;
@@ -106,7 +119,7 @@ export function parseSheetCSV(csvText: string, year: Year): YearData {
         c: Record<string, number>;
       }> = [];
 
-      let k = i + 3;
+      let k = labelRowIdx + 1;
       while (k < rows.length && rows[k][0]?.trim().startsWith("COMPETENCE")) {
         const row = rows[k];
         const ueId = row[1]?.trim() || "";
@@ -129,8 +142,11 @@ export function parseSheetCSV(csvText: string, year: Year): YearData {
         k++;
       }
 
-      // Construire la liste de ressources (ordre preserve depuis l'en-tete)
-      const ressources = resourceIds.map(r => ({ id: r.id, nom: r.id }));
+      // Construire la liste de ressources avec noms si disponibles
+      const ressources = resourceIds.map(r => {
+        const nom = namesRow ? (namesRow[r.col]?.trim() || r.id) : r.id;
+        return { id: r.id, nom };
+      });
       const totalCoeff = ues.reduce((sum, ue) => sum + ue.coeff, 0);
 
       result[semKeys[semIdx]] = {
