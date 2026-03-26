@@ -416,14 +416,8 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .total-label { color: var(--text-main); font-weight: 600; }
 
-.bonus-row td { border-bottom: none; }
-.bonus-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: #f59e0b;
-}
+th.col-bonus { color: #f59e0b !important; }
+th.col-malus { color: var(--error) !important; }
 
 .bonus-input {
   background: transparent;
@@ -441,15 +435,6 @@ input[type=number] { -moz-appearance: textfield; }
 
 .bonus-input::placeholder { color: rgba(245, 158, 11, 0.25); }
 .bonus-input:focus { outline: none; border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.05); }
-
-.malus-row td { border-bottom: none; }
-.malus-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--error);
-}
 
 .malus-input {
   background: transparent;

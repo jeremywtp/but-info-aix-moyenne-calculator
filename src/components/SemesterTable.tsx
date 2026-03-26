@@ -92,6 +92,7 @@ export const SemesterTable = memo(function SemesterTable({
 
   const semNum = semesterKey.replace("s", "");
   const hasData = Object.values(notes).some(v => v);
+  const activeRessources = data.ressources.filter(r => data.ues.some(ue => ue.c[r.id] > 0));
 
   return (
     <section className={`glass-card ${hasData ? "has-data" : ""}`}>
@@ -122,7 +123,7 @@ export const SemesterTable = memo(function SemesterTable({
           <thead>
             <tr>
               <th>UE / Competence</th>
-              {data.ressources.map(r => (
+              {activeRessources.map(r => (
                 <th key={r.id} className="tooltip-container">
                   {r.id}
                   <div className="custom-tooltip">
@@ -131,29 +132,57 @@ export const SemesterTable = memo(function SemesterTable({
                   </div>
                 </th>
               ))}
+              <th className="tooltip-container col-bonus">
+                Bonus
+                <div className="custom-tooltip"><div className="tooltip-desc">Points bonus (sport, engagement...)</div></div>
+              </th>
+              <th className="tooltip-container col-malus">
+                Malus
+                <div className="custom-tooltip"><div className="tooltip-desc">Pénalités (absences injustifiées)</div></div>
+              </th>
               <th>Coeff</th>
               <th>Moy.</th>
             </tr>
             <tr className="notes-row">
               <td><div className="notes-label">Notes /20</div></td>
-              {data.ressources.map(r => {
-                const hasCoeff = data.ues.some(ue => ue.c[r.id] > 0);
-                return (
+              {activeRessources.map(r => (
                   <td key={r.id}>
                     <input
                       type="number"
-                      className={`note-input ${hasCoeff ? getInputClass(notes[r.id]) : "input-disabled"}`}
+                      className={`note-input ${getInputClass(notes[r.id])}`}
                       value={notes[r.id] || ""}
                       onChange={e => onNoteChange(semesterKey, r.id, e.target.value)}
                       min={0}
                       max={20}
                       step={0.01}
                       placeholder="--"
-                      disabled={!hasCoeff}
                     />
                   </td>
-                );
-              })}
+                ))}
+              <td>
+                <input
+                  type="number"
+                  className="bonus-input"
+                  value={notes["_bonus"] || ""}
+                  onChange={e => onNoteChange(semesterKey, "_bonus", e.target.value)}
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  placeholder="+0"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  className="malus-input"
+                  value={notes["_malus"] || ""}
+                  onChange={e => onNoteChange(semesterKey, "_malus", e.target.value)}
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  placeholder="-0"
+                />
+              </td>
               <td colSpan={2} />
             </tr>
           </thead>
@@ -171,7 +200,7 @@ export const SemesterTable = memo(function SemesterTable({
                       </div>
                     </div>
                   </td>
-                  {data.ressources.map(r => {
+                  {activeRessources.map(r => {
                     const coeff = ue.c[r.id] || 0;
                     return (
                       <td key={r.id} className={`coeff-cell ${coeff ? "active" : ""}`}>
@@ -179,6 +208,7 @@ export const SemesterTable = memo(function SemesterTable({
                       </td>
                     );
                   })}
+                  <td /><td />
                   <td className="coeff-cell">{ue.coeff}</td>
                   <td className={`avg-cell ${getAvgClass(result?.moy)}`}>
                     {result?.moy !== null && result?.moy !== undefined ? result.moy.toFixed(2) : "--"}
@@ -188,44 +218,11 @@ export const SemesterTable = memo(function SemesterTable({
             })}
             <tr className="total-row">
               <td><div className="total-label">Total Semestre</div></td>
-              {data.ressources.map(r => <td key={r.id} />)}
+              {activeRessources.map(r => <td key={r.id} />)}
+              <td /><td />
               <td className="coeff-cell">{data.totaux.coeff}</td>
               <td className={`avg-cell ${getAvgClass(totalAvg)}`}>
                 {totalAvg !== null ? totalAvg.toFixed(2) : "--"}
-              </td>
-            </tr>
-            <tr className="bonus-row">
-              <td><div className="bonus-label">Bonus</div></td>
-              {data.ressources.map(r => <td key={r.id} />)}
-              <td />
-              <td>
-                <input
-                  type="number"
-                  className="bonus-input"
-                  value={notes["_bonus"] || ""}
-                  onChange={e => onNoteChange(semesterKey, "_bonus", e.target.value)}
-                  min={0}
-                  max={2}
-                  step={0.1}
-                  placeholder="+0"
-                />
-              </td>
-            </tr>
-            <tr className="malus-row">
-              <td><div className="malus-label">Malus</div></td>
-              {data.ressources.map(r => <td key={r.id} />)}
-              <td />
-              <td>
-                <input
-                  type="number"
-                  className="malus-input"
-                  value={notes["_malus"] || ""}
-                  onChange={e => onNoteChange(semesterKey, "_malus", e.target.value)}
-                  min={0}
-                  max={2}
-                  step={0.1}
-                  placeholder="-0"
-                />
               </td>
             </tr>
           </tbody>
