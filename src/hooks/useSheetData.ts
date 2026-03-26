@@ -8,11 +8,11 @@ import { parseSheetCSV } from "@/lib/sheetsParser";
 // Google Sheets publie — cle de publication
 // URL : https://docs.google.com/spreadsheets/d/e/{PUBLISH_KEY}/pubhtml
 // ============================================================
-const PUBLISH_KEY =
+export const PUBLISH_KEY =
   "2PACX-1vTv4CEfyku0gSqSJHL4EZ8XbXj1CLYHzg60a1obXce41Zqtt--uJmTBwju02gpZPl72iZTznWKtaTXS";
 
 // Mapping config → GID de l'onglet Google Sheets
-const SHEET_GIDS: Record<string, string> = {
+export const SHEET_GIDS: Record<string, string> = {
   // BUT 1 — meme onglet pour toutes les combinaisons
   "1-FA-A": "323743204",
   "1-FA-B": "323743204",

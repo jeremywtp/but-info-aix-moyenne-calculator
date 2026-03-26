@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { SemesterResult, DecisionResult, YearData } from "@/types";
+import type { SemesterResult, DecisionResult, YearData, Config } from "@/types";
 import { RESOURCE_NAMES } from "@/data/resourceNames";
+import { PUBLISH_KEY, SHEET_GIDS } from "@/hooks/useSheetData";
 
 interface AppFooterProps {
   semesterStats: (SemesterResult | null)[];
@@ -10,6 +11,7 @@ interface AppFooterProps {
   annualAvg: number | null;
   semesters: string[];
   currentData: YearData | null;
+  config: Config;
 }
 
 const descMessages: Record<string, string> = {
@@ -19,7 +21,7 @@ const descMessages: Record<string, string> = {
   "": "en_attente",
 };
 
-export function AppFooter({ semesterStats, decision, annualAvg, semesters, currentData }: AppFooterProps) {
+export function AppFooter({ semesterStats, decision, annualAvg, semesters, currentData, config }: AppFooterProps) {
   const [time, setTime] = useState("--:--");
   const [sessionTime, setSessionTime] = useState("00:00");
   const startRef = useRef(Date.now());
@@ -179,8 +181,16 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters, curre
               <div className="dapp-guide-note">Cumulables. Détectés automatiquement à l'import PDF (ScoDoc &amp; AMU).</div>
             </div>
           </div>
-          {currentData && (
+          {currentData && (() => {
+            const configKey = `${config.year}-${config.formation}-${config.parcours}`;
+            const gid = SHEET_GIDS[configKey];
+            const sheetUrl = gid ? `https://docs.google.com/spreadsheets/d/e/${PUBLISH_KEY}/pubhtml?gid=${gid}` : null;
+            return (
             <div className="dapp-guide-resources">
+              <div className="dapp-guide-res-header">
+                <span>BUT {config.year} — {config.formation} — Parcours {config.parcours}</span>
+                {sheetUrl && <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="dapp-guide-res-link">Voir les coefficients &#x2197;</a>}
+              </div>
               {semesters.map(sem => {
                 const semData = currentData[sem];
                 if (!semData) return null;
@@ -205,7 +215,8 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters, curre
                 );
               })}
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </footer>

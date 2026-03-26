@@ -769,6 +769,32 @@ th:last-child, td:last-child { border-right: none; }
   border-top: 1px solid var(--border);
 }
 
+.dapp-guide-res-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-main);
+  grid-column: 1 / -1;
+}
+
+.dapp-guide-res-link {
+  color: #a855f7;
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 9px;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.dapp-guide-res-link:hover { opacity: 1; text-decoration: underline; }
+
 .dapp-guide-sem-block {
   background: var(--surface);
   padding: 14px 16px;
