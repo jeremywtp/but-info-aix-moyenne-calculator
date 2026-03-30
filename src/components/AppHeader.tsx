@@ -44,11 +44,10 @@ export function AppHeader({ config, onConfigChange }: AppHeaderProps) {
     <header className="app-header">
       <div className="header-main">
         <div className="header-left">
-          <span className="header-bracket">[</span>
-          <span className="header-title">Coefficient</span>
-          <span className="header-sep">::</span>
-          <span className="header-subtitle">BUT Informatique Aix-en-Provence</span>
-          <span className="header-bracket">]</span>
+          <div className="header-brand">
+            <span className="header-title">Coefficient</span>
+            <span className="header-subtitle">BUT Informatique — Aix-en-Provence</span>
+          </div>
         </div>
         <div className="header-center">
           <div className="config-selector">
