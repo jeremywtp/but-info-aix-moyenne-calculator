@@ -45,8 +45,11 @@ export function AppHeader({ config, onConfigChange }: AppHeaderProps) {
       <div className="header-main">
         <div className="header-left">
           <div className="header-brand">
-            <span className="header-title">Coefficient</span>
-            <span className="header-subtitle">BUT Informatique — Aix-en-Provence</span>
+            <div className="header-title-row">
+              <span className="header-title">Coefficient</span>
+              <span className="header-badge">BUT INFO</span>
+            </div>
+            <span className="header-subtitle">Calculateur de moyennes · IUT Aix-en-Provence</span>
           </div>
         </div>
         <div className="header-center">
