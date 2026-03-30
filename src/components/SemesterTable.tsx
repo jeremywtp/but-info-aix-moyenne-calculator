@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useRef, useState } from "react";
+import { FileText, RotateCcw } from "lucide-react";
 import type { SemesterData, UEResult } from "@/types";
 import { parseNote } from "@/lib/calculations";
 import { parseGradesPdf } from "@/lib/pdfParser";
@@ -107,14 +108,16 @@ export const SemesterTable = memo(function SemesterTable({
         />
         <div style={{ display: "flex", gap: 8 }}>
           <button
-            className="btn-reset"
+            className="btn-pdf"
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
           >
-            {importing ? "Import..." : "/// IMPORT PDF"}
+            <FileText size={14} />
+            {importing ? "Import..." : "Importer PDF"}
           </button>
-          <button className="btn-reset" onClick={handleReset}>
-            /// RESET :: {semesterKey.toUpperCase()}
+          <button className="btn-danger" onClick={handleReset}>
+            <RotateCcw size={14} />
+            Reset
           </button>
         </div>
       </div>

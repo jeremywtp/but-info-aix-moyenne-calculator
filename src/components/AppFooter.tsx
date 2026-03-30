@@ -118,7 +118,7 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters, curre
                     {comps.map(c => (
                       <div key={c.nom} className={`inter-ue-card ${c.valide ? "acq" : "nacq"} ${c.hasCMP ? "has-cmp" : ""}`}>
                         <div className="inter-ue-name">{c.nom}</div>
-                        <div className="inter-ue-avg">{c.rcue.toFixed(2)}</div>
+                        <div className="inter-ue-avg">{!c.valide && c.rcue.toFixed(2) === "10.00" ? "9.99" : c.rcue.toFixed(2)}</div>
                         <div className="inter-ue-statut">{c.valide ? "VAL" : "NON VAL"}</div>
                         {c.hasCMP && <div className="inter-ue-cmp">CMP</div>}
                       </div>
@@ -188,7 +188,7 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters, curre
             return (
             <div className="dapp-guide-resources">
               <div className="dapp-guide-res-header">
-                <span>BUT {config.year} — {config.formation} — Parcours {config.parcours}</span>
+                <span>BUT {config.year}{config.year !== "1" ? ` — ${config.formation} — Parcours ${config.parcours}` : ""}</span>
                 {sheetUrl && <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="dapp-guide-res-link">Voir les coefficients &#x2197;</a>}
               </div>
               {semesters.map(sem => {

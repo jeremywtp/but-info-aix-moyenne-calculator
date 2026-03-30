@@ -271,9 +271,9 @@ export function generateMessages(
   });
 
   if (validStats.length === 2 && validStats.every(s => s.moyGenerale !== null)) {
-    const s3 = validStats[0];
-    const s4 = validStats[1];
-    const competences = calculateCompetences(s3, s4);
+    const semA = validStats[0];
+    const semB = validStats[1];
+    const competences = calculateCompetences(semA, semB);
     const compValidees = competences.filter(c => c.valide).length;
 
     if (competences.length > 0) {
@@ -281,23 +281,23 @@ export function generateMessages(
       messages.push({ type: "info", text: `[COMPETENCES] ${compValidees}/${competences.length} competences annuelles validees. Detail : ${detail}` });
     }
 
-    const totalUE = s3.uesTotal + s4.uesTotal;
-    const totalACQ = s3.uesACQ + s4.uesACQ;
-    const totalDEF = s3.uesDEF + s4.uesDEF;
-    const totalECTS = s3.ectsAcquis + s4.ectsAcquis;
-    const moyAnnuelle = ((s3.moyGenerale ?? 0) + (s4.moyGenerale ?? 0)) / 2;
+    const totalUE = semA.uesTotal + semB.uesTotal;
+    const totalACQ = semA.uesACQ + semB.uesACQ;
+    const totalDEF = semA.uesDEF + semB.uesDEF;
+    const totalECTS = semA.ectsAcquis + semB.ectsAcquis;
+    const moyAnnuelle = ((semA.moyGenerale ?? 0) + (semB.moyGenerale ?? 0)) / 2;
 
     let statutAnnee = "";
     let statutType: MessageInfo["type"] = "info";
 
-    if (s3.semestreValide && s4.semestreValide) {
+    if (semA.semestreValide && semB.semestreValide) {
       statutAnnee = `ADM (Admis) — Vos deux semestres sont valides. Passage en annee superieure avec 60 ECTS.`;
       statutType = "success";
     } else if (config.but1Validated && totalDEF === 0 && totalACQ > totalUE / 2) {
       statutAnnee = `ADM (Compensation annuelle) — BUT1 valide + 0 DEF + ${totalACQ}/${totalUE} UE >= 10. Passage de droit accorde.`;
       statutType = "success";
-    } else if (s3.semestreValide || s4.semestreValide || totalECTS >= 30) {
-      const raison = s3.semestreValide ? "le S3 est valide" : s4.semestreValide ? "le S4 est valide" : `${totalECTS}/60 ECTS (>= 30)`;
+    } else if (semA.semestreValide || semB.semestreValide || totalECTS >= 30) {
+      const raison = semA.semestreValide ? `le ${semA.sem} est valide` : semB.semestreValide ? `le ${semB.sem} est valide` : `${totalECTS}/60 ECTS (>= 30)`;
       const note = (!config.but1Validated && totalDEF === 0 && totalACQ > totalUE / 2)
         ? ` Note : conditions de compensation remplies (0 DEF + ${totalACQ}/${totalUE} ACQ) mais BUT1 non valide.`
         : "";
@@ -312,8 +312,8 @@ export function generateMessages(
     }
 
     messages.push({ type: statutType, text: `>>> DECISION ANNEE : ${statutAnnee}` });
-    const totalCMP = (s3.uesCMP || 0) + (s4.uesCMP || 0);
-    const totalNACQ = s3.uesNACQ + s4.uesNACQ;
+    const totalCMP = (semA.uesCMP || 0) + (semB.uesCMP || 0);
+    const totalNACQ = semA.uesNACQ + semB.uesNACQ;
     const cmpStr = totalCMP > 0 ? ` + ${totalCMP} CMP` : "";
     messages.push({ type: "info", text: `[RECAPITULATIF] Moyenne annuelle : ${moyAnnuelle.toFixed(2)}/20 | ECTS : ${totalECTS}/60 | UE : ${totalACQ} ACQ${cmpStr} + ${totalNACQ} NACQ + ${totalDEF} DEF = ${totalUE} total.` });
   }

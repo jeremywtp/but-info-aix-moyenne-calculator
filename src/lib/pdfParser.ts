@@ -74,9 +74,9 @@ function extractBonusFromText(text: string, semesterNum: number): string | null 
     if (val > 0) return String(val);
   }
 
-  // Format AMU : "Total bonus S1 .4/20" ou "Total bonus S1.4/20"
+  // Format AMU : "Total bonus S1 .4/20" ou "Bonus catégorie sport S1 .4/20" (avec ou sans "Total")
   const amuRegex = new RegExp(
-    `Total\\s+bonus\\s+S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
+    `(?:Total\\s+)?bonus.*?S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
     "i",
   );
   const amuMatch = text.match(amuRegex);
@@ -101,9 +101,9 @@ function extractMalusFromText(text: string, semesterNum: number): string | null 
     if (val > 0) return String(val);
   }
 
-  // Format AMU : "Total Malus UE S2 .2/20" ou "Total Malus S2.2/20"
+  // Format AMU : "Total Malus UE S2 .2/20" ou "Malus UE S1 .1/20" (avec ou sans "Total")
   const amuRegex = new RegExp(
-    `Total\\s+Malus.*?S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
+    `(?:Total\\s+)?Malus.*?S${semesterNum}\\s*(\\.\\d+|\\d+\\.?\\d*)\\/20`,
     "i",
   );
   const amuMatch = text.match(amuRegex);
