@@ -32,11 +32,10 @@ export const InterStatsPanel = memo(function InterStatsPanel({ stats }: InterSta
 
   return (
     <section className="inter-stats-panel">
+      <div className="inter-stats-accent" />
       <div className="inter-stats-header">
-        <span className="inter-stats-bracket">[</span>
         <span className="inter-stats-title">BILAN SEMESTRE</span>
         <span className="inter-stats-sem">{stats.sem}</span>
-        <span className="inter-stats-bracket">]</span>
       </div>
       <div className="inter-stats-content">
         <div className="inter-stats-main">

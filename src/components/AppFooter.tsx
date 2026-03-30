@@ -81,10 +81,9 @@ export function AppFooter({ semesterStats, decision, annualAvg, semesters, curre
       <div className="dapp-content">
         {/* Bilan Annuel — meme style que InterStatsPanel */}
         <section className="inter-stats-panel annual-panel">
+          <div className="inter-stats-accent" />
           <div className="inter-stats-header">
-            <span className="inter-stats-bracket">[</span>
             <span className="inter-stats-title">BILAN ANNUEL</span>
-            <span className="inter-stats-bracket">]</span>
           </div>
           <div className="inter-stats-content">
             <div className="inter-stats-main">
