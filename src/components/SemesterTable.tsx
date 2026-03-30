@@ -73,6 +73,7 @@ export const SemesterTable = memo(function SemesterTable({
   if (!data) {
     return (
       <section className="glass-card">
+        <div className="glass-card-accent" />
         <div className="semester-header">
           <div className="semester-title">Semestre {semesterKey.replace("s", "")}</div>
         </div>
@@ -97,6 +98,7 @@ export const SemesterTable = memo(function SemesterTable({
 
   return (
     <section className={`glass-card ${hasData ? "has-data" : ""}`}>
+      <div className="glass-card-accent" />
       <div className="semester-header">
         <div className="semester-title">Semestre {semNum}</div>
         <input
