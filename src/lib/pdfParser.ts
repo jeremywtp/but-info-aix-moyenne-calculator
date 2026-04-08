@@ -240,10 +240,19 @@ function detectPdfInfo(text: string): {
   const rMatches = [...text.matchAll(/\bR(\d)\.\d/g)];
   for (const m of rMatches) semesters.add(parseInt(m[1]));
 
-  // Parcours : lettre A/B dans les IDs SAE/R (ex: SAE3.B.01, R4.A.08)
+  // Parcours : detecter depuis les noms d'UE (le plus fiable)
+  // ScoDoc : "UE3.1B", "UE3.2A" — la lettre A/B apres le numero d'UE
   let parcours: "A" | "B" | null = null;
-  if (/(?:R|S|SAE)\d+\.A\./i.test(text)) parcours = "A";
-  else if (/(?:R|S|SAE)\d+\.B\./i.test(text)) parcours = "B";
+  const ueParcoursMatch = text.match(/UE\d+\.\d+([AB])\b/);
+  if (ueParcoursMatch) {
+    parcours = ueParcoursMatch[1] as "A" | "B";
+  } else {
+    // Fallback : compter les IDs SAE/R parcours A vs B (le PDF peut lister les deux)
+    const aCount = (text.match(/(?:R|S|SAE)\d+\.A\./gi) || []).length;
+    const bCount = (text.match(/(?:R|S|SAE)\d+\.B\./gi) || []).length;
+    if (aCount > bCount) parcours = "A";
+    else if (bCount > aCount) parcours = "B";
+  }
   // Fallback : nom du parcours dans le format AMU
   if (!parcours && /parcours.*Déploiement/i.test(text)) parcours = "B";
   if (!parcours && /parcours.*Réalisation/i.test(text)) parcours = "A";
